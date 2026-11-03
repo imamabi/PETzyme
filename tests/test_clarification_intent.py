@@ -2,9 +2,9 @@
 
 import pytest
 
-from zymecycle.clarification_intent import question_presentation
-from zymecycle.dialogue_types import ClarificationSelection, DialogueContext
-from zymecycle.runtime_config import empty_usage
+from petzyme.clarification_intent import question_presentation
+from petzyme.dialogue_types import ClarificationSelection, DialogueContext
+from petzyme.runtime_config import empty_usage
 
 
 def context():

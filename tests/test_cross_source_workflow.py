@@ -8,20 +8,20 @@ from typing import cast
 import pytest
 from streamlit.testing.v1 import AppTest
 
-from zymecycle.agent_request import interpret_request, required_tool_steps, select_tool_catalog
-from zymecycle.experimental_coverage import (
+from petzyme.agent_request import interpret_request, required_tool_steps, select_tool_catalog
+from petzyme.experimental_coverage import (
     MAX_COVERAGE_CONDITIONS,
     MAX_MISSING_CONDITIONS,
     summarize_experimental_coverage,
 )
-from zymecycle.observations import load_nrel, parse_nrel
-from zymecycle.nrel_units import standardized_nrel_values
-from zymecycle.pet_evidence import investigate_pet_evidence
-from zymecycle.pet_presenter import preview_pet_evidence
-from zymecycle.pet_retrieval import load_activity_source, match_pet_assays
-from zymecycle.privacy import safe_public_text
-from zymecycle.research_advisor import advise_next_experiment
-from zymecycle.ui_experiments import CombinedExperimentalPreview, combined_experimental_rows
+from petzyme.observations import load_nrel, parse_nrel
+from petzyme.nrel_units import standardized_nrel_values
+from petzyme.pet_evidence import investigate_pet_evidence
+from petzyme.pet_presenter import preview_pet_evidence
+from petzyme.pet_retrieval import load_activity_source, match_pet_assays
+from petzyme.privacy import safe_public_text
+from petzyme.research_advisor import advise_next_experiment
+from petzyme.ui_experiments import CombinedExperimentalPreview, combined_experimental_rows
 
 A = {"temperature_c": 40, "ph": 6.5, "pet_form": "CRYSTALLINE_POWDER"}
 B = {**A, "temperature_c": 60}
@@ -171,7 +171,7 @@ def test_rounding_sensitive_cells_surface_manifest_diagnostics_without_blocking(
 def test_grounded_source_coverage_and_unit_examples_preserve_privacy():
     from test_research_advisor_integration import AdviceTransport, investigate
 
-    from zymecycle.agent_reporting import format_research_report
+    from petzyme.agent_reporting import format_research_report
 
     scenario = AdviceTransport()
     result = investigate(scenario)["result"]
@@ -197,8 +197,8 @@ def test_grounded_source_coverage_and_unit_examples_preserve_privacy():
 
 
 def test_combined_overview_never_claims_no_measurements_with_source_rows():
-    from zymecycle.ui_adapter import EXAMPLES, run_offline
-    from zymecycle.ui_findings import result_overview
+    from petzyme.ui_adapter import EXAMPLES, run_offline
+    from petzyme.ui_findings import result_overview
 
     view = run_offline(EXAMPLES["Multi-study comparison"])["result"]
     summary = result_overview(view)
@@ -242,9 +242,9 @@ def test_real_ui_combined_findings_transient_reset_and_no_inference(index, monke
     def blocked(*args, **kwargs):
         pytest.fail("Forbidden inference, credential or external API access")
 
-    monkeypatch.setattr("zymecycle.meta.MetaModelClient.complete", blocked)
-    monkeypatch.setattr("zymecycle.ui_live.subprocess.Popen", blocked)
-    monkeypatch.setattr("zymecycle.pazy.PazyClient._get", blocked, raising=False)
+    monkeypatch.setattr("petzyme.meta.MetaModelClient.complete", blocked)
+    monkeypatch.setattr("petzyme.ui_live.subprocess.Popen", blocked)
+    monkeypatch.setattr("petzyme.pazy.PazyClient._get", blocked, raising=False)
     at = AppTest.from_file(APP, default_timeout=30).run()
     at.button(key=f"example_{index}").click().run()
     at.button(key="investigate").click().run()
@@ -266,10 +266,10 @@ def test_real_ui_combined_findings_transient_reset_and_no_inference(index, monke
 
 
 def test_unavailable_pazy_does_not_establish_novelty(monkeypatch):
-    from zymecycle.results import outcome
+    from petzyme.results import outcome
 
     monkeypatch.setattr(
-        "zymecycle.research_advisor.investigate_pet_evidence",
+        "petzyme.research_advisor.investigate_pet_evidence",
         lambda *a, **k: outcome("ERROR", None, [], [], "COMPUTED"),
     )
     result = advise_next_experiment("ESM050", A, B)

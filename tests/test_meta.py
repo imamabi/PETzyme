@@ -1,7 +1,7 @@
 import json
 import httpx
 import pytest
-from zymecycle.meta import ENDPOINT, MODEL, MetaModelClient, ModelError
+from petzyme.meta import ENDPOINT, MODEL, MetaModelClient, ModelError
 
 
 def response(message=None, finish='stop'):

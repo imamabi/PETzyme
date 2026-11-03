@@ -1,10 +1,10 @@
 """Bounded ranking tests with explicitly synthetic embeddings and CSV fixtures."""
 import json
 import pytest
-from zymecycle import protein_similarity as similarity
-from zymecycle import esm
-from zymecycle.observations import load_nrel
-from zymecycle.results import outcome
+from petzyme import protein_similarity as similarity
+from petzyme import esm
+from petzyme.observations import load_nrel
+from petzyme.results import outcome
 from test_esm import SyntheticRuntime
 
 

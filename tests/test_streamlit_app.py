@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from streamlit.testing.v1 import AppTest
 from test_esm import SyntheticRuntime
-from zymecycle import esm, ui_live, ui_adapter
+from petzyme import esm, ui_live, ui_adapter
 
 APP = Path(__file__).resolve().parents[1] / 'tests/legacy_streamlit_app.py'
 
@@ -120,8 +120,8 @@ def test_partial_workflow_distinct_and_limitations_visible(monkeypatch):
 
 
 def test_public_ui_keeps_pazy_records_and_provider_details_out():
-    from zymecycle.results import outcome
-    from zymecycle.agent_evidence import public_tool_update
+    from petzyme.results import outcome
+    from petzyme.agent_evidence import public_tool_update
     native=outcome('SUCCESS',{'id':987654,'name':'PRIVATE_RECORD','sequence':'ACDEF'*20},[],[],None)
     update=public_tool_update({'call_id':'p1','name':'search_pazy_pet','status':'SUCCESS','ephemeral':True},native,1,1)
     report=outcome('PARTIAL',{'question':'PRIVATE_RECORD 987654','provider_mode':'MOCK_META','status':'PARTIAL',

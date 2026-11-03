@@ -53,7 +53,7 @@ from .scientific_scope import ScopeAssessment
 ROOT = Path(__file__).resolve().parents[1]
 _LOADED_AT = time.time()
 _CODE_FINGERPRINT = hashlib.sha256(b''.join(p.read_bytes() for p in
-    sorted((ROOT/'zymecycle').glob('*.py'))) + (ROOT/'streamlit_app.py').read_bytes()).hexdigest()[:16]
+    sorted((ROOT/'petzyme').glob('*.py'))) + (ROOT/'streamlit_app.py').read_bytes()).hexdigest()[:16]
 
 
 class RuntimeIdentity(TypedDict):
@@ -742,7 +742,7 @@ def run_offline(
     Returns:
         ToolResult[ResearchView] via OfflineWorkflow.
     Example:
-        >>> from zymecycle.ui_adapter import EXAMPLES
+        >>> from petzyme.ui_adapter import EXAMPLES
         >>> out = run_offline(EXAMPLES['Temperature evidence'])
         >>> (out['status'], out['result']['workflow_status'])
         ('SUCCESS', 'COMPLETE')
@@ -781,6 +781,32 @@ def _research_notice(status: Literal["ERROR", "NO_DATA"], message: str) -> ToolR
 def _replace_research_label(question: str, target: str, replacement: str) -> str:
     """Flow: Receives user question and verified replacement from dispatch_research_turn(); returns str for its amended research context."""
     return re.sub(r"(?<![\w])" + re.escape(target) + r"(?![\w])", lambda _: replacement, question, flags=re.IGNORECASE)
+
+def _evidence_matches_subjects(view: ResearchView, subjects: tuple[str, ...]) -> bool:
+    """Flow: Receives ResearchView and resolved subject names from dispatch_research_turn(); returns bool for its final presentation guard."""
+    allowed = {subject.casefold() for subject in subjects}
+    if not allowed:
+        return True
+    def matches(rows: object, field: str) -> bool:
+        if not isinstance(rows, list):
+            return False
+        return all(isinstance(row, dict) and isinstance(row.get(field), str)
+                   and row[field].casefold() in allowed for row in rows)
+    if not matches(view.get("observations", []), "enzyme_identifier"):
+        return False
+    multi = view.get("multi_study")
+    if isinstance(multi, dict):
+        nrel, pazy = multi.get("nrel"), multi.get("pazy")
+        if isinstance(nrel, dict) and not matches(nrel.get("observations", []), "enzyme_identifier"):
+            return False
+        if isinstance(pazy, dict) and not matches(pazy.get("records", []), "protein_name"):
+            return False
+        coverage = multi.get("experimental_coverage")
+        if isinstance(coverage, dict) and coverage.get("enzyme") not in (None, ""):
+            if not isinstance(coverage["enzyme"], str) or coverage["enzyme"].casefold() not in allowed:
+                return False
+    return True
+
 
 def dispatch_research_turn(
     session: ResearchSession, text: str,
@@ -977,8 +1003,13 @@ def dispatch_research_turn(
             and not re.search(r"\b(?:those|these|them|that|this|their|previous|compare with|compare another|also|instead of)\b", text, re.IGNORECASE)):
         session = replace(session, active_questions=(), discovery_replayable=False,
                           pending_label=None, pending_candidate=None, sequence_label=None)
+    # A planning turn without an explicitly named subject refers to the active
+    # resolved investigation; the wording need not match one fixed phrase.
+    subjectless_planning = bool({"experiment_advice", "exploratory_planning"} & set(current_request["objectives"])) and not current_request["enzyme_identifiers"]
+    if subjectless_planning and not session.enzyme_identifiers and not session.discovery_replayable:
+        return session, _research_notice("NO_DATA", "Please identify the enzyme before requesting an experimental plan."), False
     source_followup = sequence_followup or bool(session.active_questions and not current_request["enzyme_identifiers"]
-                           and re.search(r"\b(?:pazy|nrel|both sources)\b", text, re.IGNORECASE))
+                           and (subjectless_planning or re.search(r"\b(?:pazy|nrel|both sources)\b", text, re.IGNORECASE)))
     updated, question, followup = prepare_research_turn(session, text, source_followup=source_followup)
     if followup and context_runner is None and runner is not run_offline:
         return session, _research_notice("ERROR", _CONTEXT_RUNNER_REQUIRED), False
@@ -1051,6 +1082,8 @@ def dispatch_research_turn(
     view = result["result"]
     if view is None:
         return session, result, followup
+    if not _evidence_matches_subjects(view, updated.enzyme_identifiers):
+        return session, _research_notice("ERROR", "Retrieved evidence did not match the resolved enzyme; no results were substituted."), followup
     dialogue = view.get("dialogue")
     if dialogue and validate_dialogue_context(dialogue.get("context")):
         updated = replace(updated, dialogue_context=deepcopy(dialogue["context"]))

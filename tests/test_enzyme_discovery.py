@@ -10,15 +10,15 @@ import httpx
 import pytest
 from streamlit.testing.v1 import AppTest
 
-from zymecycle.agent import run_investigation
-from zymecycle.agent_request import interpret_request, required_tool_steps, select_tool_catalog
-from zymecycle.enzyme_discovery import UNIT, discover_pet_enzymes, rank_discovery_group
-from zymecycle.meta import MetaModelClient
-from zymecycle.pet_retrieval import load_activity_source, match_pet_assays
-from zymecycle.privacy import outbound_safe, tool_privacy
-from zymecycle.results import outcome
-from zymecycle.tools import invoke_tool
-from zymecycle.ui_adapter import run_offline
+from petzyme.agent import run_investigation
+from petzyme.agent_request import interpret_request, required_tool_steps, select_tool_catalog
+from petzyme.enzyme_discovery import UNIT, discover_pet_enzymes, rank_discovery_group
+from petzyme.meta import MetaModelClient
+from petzyme.pet_retrieval import load_activity_source, match_pet_assays
+from petzyme.privacy import outbound_safe, tool_privacy
+from petzyme.results import outcome
+from petzyme.tools import invoke_tool
+from petzyme.ui_adapter import run_offline
 
 QUESTION = "What are the 5 enzymes with the best response for PET breakdown?"
 SECOND = "Show the top five PET hydrolases on amorphous film at 60C, pH 6.5."
@@ -227,7 +227,7 @@ def test_documented_alias_ambiguity_is_not_silently_merged():
 
 def test_nrel_units_or_unavailable_reference_never_block_valid_pazy(monkeypatch):
     monkeypatch.setattr(
-        "zymecycle.enzyme_discovery.load_nrel", lambda *a: outcome("ERROR", None, [], [], None)
+        "petzyme.enzyme_discovery.load_nrel", lambda *a: outcome("ERROR", None, [], [], None)
     )
     result = discover_pet_enzymes()
     assert result["status"] == "PARTIAL" and len(result["result"]["entries"]) == 5
@@ -303,9 +303,9 @@ def test_exact_browser_ui_contract_without_paid_calls_or_result_history(question
     def forbidden(*a, **k):
         pytest.fail("Paid provider, Keychain or external protein API called")
 
-    monkeypatch.setattr("zymecycle.ui_live.run_keychain_investigation", forbidden)
-    monkeypatch.setattr("zymecycle.meta.MetaModelClient.complete", forbidden)
-    monkeypatch.setattr("zymecycle.pazy.PazyClient._get", forbidden, raising=False)
+    monkeypatch.setattr("petzyme.ui_live.run_keychain_investigation", forbidden)
+    monkeypatch.setattr("petzyme.meta.MetaModelClient.complete", forbidden)
+    monkeypatch.setattr("petzyme.pazy.PazyClient._get", forbidden, raising=False)
     at = AppTest.from_file(APP, default_timeout=30).run()
     at.text_area(key="question").input(question)
     at.button(key="investigate").click().run()
@@ -340,7 +340,7 @@ def test_live_mode_without_authorization_still_returns_local_database_results(mo
     def blocked(*args, **kwargs):
         pytest.fail("Local discovery attempted paid inference or Keychain access")
 
-    monkeypatch.setattr("zymecycle.ui_live.run_keychain_investigation", blocked)
+    monkeypatch.setattr("petzyme.ui_live.run_keychain_investigation", blocked)
     at = AppTest.from_file(APP, default_timeout=30).run()
     at.radio(key="mode").set_value("Live Meta agent").run()
     at.text_area(key="question").input(QUESTION)
@@ -393,9 +393,9 @@ def test_scientific_discovery_never_writes_logs_or_calls_network(monkeypatch, ca
     ],
 )
 def test_authentic_discovery_fact_ids_cannot_bypass_scope(question, issue):
-    from zymecycle.agent_execution import execute_tool_call
-    from zymecycle.agent_reporting import validate_investigation
-    from zymecycle.agent_types import AgentState
+    from petzyme.agent_execution import execute_tool_call
+    from petzyme.agent_reporting import validate_investigation
+    from petzyme.agent_types import AgentState
 
     state = AgentState("data/nrel/label_data.csv")
     call = {
@@ -411,7 +411,7 @@ def test_authentic_discovery_fact_ids_cannot_bypass_scope(question, issue):
 
 
 def test_mock_orchestration_is_never_labelled_real_muse(monkeypatch):
-    from zymecycle import ui_adapter
+    from petzyme import ui_adapter
 
     scenario = DiscoveryTransport()
 

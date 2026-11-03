@@ -2,9 +2,9 @@ import json
 
 import httpx
 
+from petzyme import metadata
+from petzyme.pazy import PazyClient
 from scripts.demo_build01 import main, nrel_examples, pazy_smoke_summary
-from zymecycle import metadata
-from zymecycle.pazy import PazyClient
 
 
 def test_local_demonstrations(tmp_path):
@@ -25,7 +25,7 @@ def test_live_demo_never_emits_records(monkeypatch):
             return httpx.Response(200, json={'count': 1, 'next': None, 'previous': None, 'results': [record]})
         return httpx.Response(200, json=record)
     monkeypatch.setattr(metadata, '_DEFAULT_CLIENT', PazyClient(transport=httpx.MockTransport(handler)))
-    monkeypatch.setattr('zymecycle.pazy.time.sleep', lambda delay: None)
+    monkeypatch.setattr('petzyme.pazy.time.sleep', lambda delay: None)
     summary = pazy_smoke_summary()
     assert summary['metadata_status'] == 'SUCCESS'
     assert summary['returned_reference_count'] == summary['embedded_reference_count'] == 1

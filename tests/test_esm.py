@@ -7,8 +7,8 @@ from types import SimpleNamespace
 import pytest
 import torch
 
-from zymecycle import esm
-from zymecycle.protein_sequences import prepare_protein_sequence
+from petzyme import esm
+from petzyme.protein_sequences import prepare_protein_sequence
 
 
 class SyntheticRuntime:

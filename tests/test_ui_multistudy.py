@@ -7,22 +7,22 @@ APP=Path(__file__).resolve().parents[1]/'tests/legacy_streamlit_app.py'
 
 
 def test_optional_preview_does_not_change_required_worker_fields():
-    from zymecycle.ui_adapter import ResearchView
+    from petzyme.ui_adapter import ResearchView
     assert 'multi_study' not in ResearchView.__required_keys__
     assert 'multi_study' in ResearchView.__optional_keys__
 
 
 @pytest.mark.parametrize('index',[4,5,6])
 def test_real_local_multistudy_ui_is_transient_and_offline(index,monkeypatch):
-    from zymecycle import ui_adapter
+    from petzyme import ui_adapter
     calls=[];original=ui_adapter.run_investigation
     def run(*a,**k):
         calls.append(1)
         return original(*a,**k)
     def forbidden(*a,**k): pytest.fail('Offline multi-study display attempted Meta/Keychain')
     monkeypatch.setattr(ui_adapter,'run_investigation',run)
-    monkeypatch.setattr('zymecycle.meta.MetaModelClient.complete',forbidden)
-    monkeypatch.setattr('zymecycle.ui_live.subprocess.Popen',forbidden)
+    monkeypatch.setattr('petzyme.meta.MetaModelClient.complete',forbidden)
+    monkeypatch.setattr('petzyme.ui_live.subprocess.Popen',forbidden)
     at=AppTest.from_file(APP,default_timeout=30).run()
     at.button(key=f'example_{index}').click().run()
     assert not calls
@@ -55,7 +55,7 @@ def test_real_local_multistudy_ui_is_transient_and_offline(index,monkeypatch):
 
 def test_narrow_doi_ui_displays_only_bounded_projection_and_truthful_gap(monkeypatch):
     from test_agent_pet import LocalPetScenario
-    from zymecycle import ui_adapter
+    from petzyme import ui_adapter
     question=('Inspect multi-study PAZy evidence for ESM050 at 40°C, pH 6.5 using PET powder, '
               'publication DOI 10.1021/acscatal.5c03460, measurement index 0.')
     scenario=LocalPetScenario({'query':{'protein_name':'ESM050','publication_doi':'10.1021/acscatal.5c03460',

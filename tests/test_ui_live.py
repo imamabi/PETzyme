@@ -3,8 +3,8 @@ import json
 import os
 import sys
 import pytest
-from zymecycle import ui_live
-from zymecycle.ui_adapter import EXAMPLES, run_offline
+from petzyme import ui_live
+from petzyme.ui_adapter import EXAMPLES, run_offline
 
 
 class FakeProcess:
@@ -41,7 +41,7 @@ def test_live_launch_fixed_command_environment_credential_and_public_protocol(mo
     result = ui_live.run_keychain_investigation(EXAMPLES['Temperature evidence'], authorized=True, on_update=updates.append)
     assert result == safe and updates == [update]
     assert len(calls) == 1
-    assert calls[0][0] == [sys.executable,'-m','scripts.launch_meta','--authorize-paid-meta','--',sys.executable,'-m','zymecycle.ui_live','--live-worker']
+    assert calls[0][0] == [sys.executable,'-m','scripts.launch_meta','--authorize-paid-meta','--',sys.executable,'-m','petzyme.ui_live','--live-worker']
     assert 'synthetic-parent-credential' not in json.dumps(result)
 
 
@@ -68,7 +68,7 @@ def test_unified_app_routes_environment_credential_without_exposing_it(monkeypat
     monkeypatch.setattr(ui_live, 'run_keychain_investigation', fake_live)
     app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / 'streamlit_app.py'), default_timeout=60).run()
     app.text_area(key='unified_question').input('Investigate ESM050 PET experimental evidence.')
-    app.button(key='FormSubmitter:ask_zymecycle-Ask PETzyme').click().run(timeout=60)
+    app.button(key='FormSubmitter:ask_petzyme-Ask PETzyme').click().run(timeout=60)
     assert not app.exception and len(calls) == 1
     assert 'synthetic-app-only-key' not in str(app)
 
@@ -97,7 +97,7 @@ def test_cohort_worker_rejects_stale_code_before_constructing_provider(monkeypat
                'cohort_origin': 'What are the five enzymes with the best recorded PET-degradation responses?',
                'cohort_fingerprint': 'stale-code'}
     monkeypatch.setattr(sys, 'stdin', io.TextIOWrapper(io.BytesIO(json.dumps(payload).encode())))
-    monkeypatch.setattr('zymecycle.meta.MetaModelClient', lambda **kwargs: pytest.fail('provider must not be constructed'))
+    monkeypatch.setattr('petzyme.meta.MetaModelClient', lambda **kwargs: pytest.fail('provider must not be constructed'))
     assert ui_live.worker_main() == 0
     output = capsys.readouterr().out
     assert 'code differ' in output and 'synthetic-child-test-only' not in output
@@ -118,13 +118,13 @@ def test_worker_deadline_terminates_the_child_group_without_retry(monkeypatch):
 
 def test_worker_mocked_backend_only_and_output_is_redacted(monkeypatch, capsys):
     from scripts.demo_build03 import ScenarioMeta
-    from zymecycle.meta import MetaModelClient
+    from petzyme.meta import MetaModelClient
     import httpx
     monkeypatch.setenv('MODEL_API_KEY','synthetic-child-test-only')
     monkeypatch.setattr(sys,'argv',['ui_live','--live-worker'])
     monkeypatch.setattr(sys,'stdin',io.TextIOWrapper(io.BytesIO(json.dumps({'question':EXAMPLES['Temperature evidence']}).encode())))
     backend = MetaModelClient(transport=httpx.MockTransport(ScenarioMeta('B').respond))
-    monkeypatch.setattr('zymecycle.meta.MetaModelClient',lambda **kwargs:backend)
+    monkeypatch.setattr('petzyme.meta.MetaModelClient',lambda **kwargs:backend)
     assert ui_live.worker_main()==0
     output = capsys.readouterr().out
     assert 'synthetic-child-test-only' not in output and '"rows"' not in output and '"vector"' not in output
@@ -134,7 +134,7 @@ def test_worker_mocked_backend_only_and_output_is_redacted(monkeypatch, capsys):
 
 def test_automatic_worker_uses_no_estimated_spending_ceiling(monkeypatch, capsys):
     from scripts.demo_build03 import ScenarioMeta
-    from zymecycle.meta import MetaModelClient
+    from petzyme.meta import MetaModelClient
     import httpx
 
     monkeypatch.setenv('MODEL_API_KEY', 'synthetic-child-test-only')
@@ -148,7 +148,7 @@ def test_automatic_worker_uses_no_estimated_spending_ceiling(monkeypatch, capsys
         assert kwargs['max_estimated_cost_usd'] is None and kwargs['completion_tokens'] == 50000
         assert kwargs['automatic_runtime'] is True
         return backend
-    monkeypatch.setattr('zymecycle.meta.MetaModelClient', factory)
+    monkeypatch.setattr('petzyme.meta.MetaModelClient', factory)
     assert ui_live.worker_main() == 0
     output = capsys.readouterr().out
     assert 'synthetic-child-test-only' not in output

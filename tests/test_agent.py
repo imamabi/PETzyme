@@ -2,11 +2,11 @@ import json
 import httpx
 import pytest
 from scripts.demo_build03 import QUESTIONS, ScenarioMeta, run_scenario
-from zymecycle.agent import run_investigation
-from zymecycle.agent_reporting import format_research_report
-from zymecycle import metadata
-from zymecycle.meta import MetaModelClient
-from zymecycle.pazy import PazyClient
+from petzyme.agent import run_investigation
+from petzyme.agent_reporting import format_research_report
+from petzyme import metadata
+from petzyme.meta import MetaModelClient
+from petzyme.pazy import PazyClient
 
 
 def test_automatic_runtime_stops_repeated_unproductive_tool_calls(csv_path):
@@ -29,8 +29,8 @@ def test_automatic_runtime_stops_repeated_unproductive_tool_calls(csv_path):
 
 
 def test_automatic_runtime_has_no_legacy_model_or_tool_attempt_ceiling(monkeypatch, csv_path):
-    from zymecycle.agent_types import ReasoningError
-    from zymecycle.results import outcome
+    from petzyme.agent_types import ReasoningError
+    from petzyme.results import outcome
 
     class LongBackend:
         mode = 'MOCK_META'
@@ -55,7 +55,7 @@ def test_automatic_runtime_has_no_legacy_model_or_tool_attempt_ceiling(monkeypat
         state.results[call_id] = outcome('SUCCESS', None, [], [], None)
         return event
 
-    monkeypatch.setattr('zymecycle.agent.execute_tool_call', synthetic_success)
+    monkeypatch.setattr('petzyme.agent.execute_tool_call', synthetic_success)
     backend = LongBackend()
     result = run_investigation(QUESTIONS['B'], backend, csv_path=csv_path, automatic_runtime=True)
     assert backend.calls == 18 and result['result']['tool_attempts'] == 17
@@ -117,7 +117,7 @@ def test_pazy_projection_redaction_and_current_request_only(monkeypatch, csv_pat
             return httpx.Response(200, json={'count': 1, 'next': None, 'previous': None, 'results': [record]})
         return httpx.Response(200, json=record)
     monkeypatch.setattr(metadata, '_DEFAULT_CLIENT', PazyClient(transport=httpx.MockTransport(handler)))
-    monkeypatch.setattr('zymecycle.pazy.time.sleep', lambda delay: None)
+    monkeypatch.setattr('petzyme.pazy.time.sleep', lambda delay: None)
     for _ in range(2):
         scripted = ScenarioMeta('D')
         result = run_investigation(QUESTIONS['D'], MetaModelClient(transport=httpx.MockTransport(scripted.respond)), csv_path=csv_path)
@@ -205,7 +205,7 @@ def test_no_pazy_filesystem_access(monkeypatch, csv_path):
             return httpx.Response(200, json={'count': 1, 'next': None, 'previous': None, 'results': [record]})
         return httpx.Response(200, json=record)
     monkeypatch.setattr(metadata, '_DEFAULT_CLIENT', PazyClient(transport=httpx.MockTransport(handler)))
-    monkeypatch.setattr('zymecycle.pazy.time.sleep', lambda delay: None)
+    monkeypatch.setattr('petzyme.pazy.time.sleep', lambda delay: None)
     def forbidden(*args, **kwargs): raise AssertionError('Agent attempted filesystem access during PAZy investigation')
     with monkeypatch.context() as guard:
         guard.setattr(builtins, 'open', forbidden)

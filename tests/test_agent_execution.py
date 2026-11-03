@@ -1,11 +1,11 @@
 import json
 import httpx
 import pytest
-from zymecycle.agent_execution import execute_tool_call
-from zymecycle.agent_request import interpret_request, select_tool_catalog
-from zymecycle.agent_types import AgentState
-from zymecycle import metadata
-from zymecycle.pazy import PazyClient
+from petzyme.agent_execution import execute_tool_call
+from petzyme.agent_request import interpret_request, select_tool_catalog
+from petzyme.agent_types import AgentState
+from petzyme import metadata
+from petzyme.pazy import PazyClient
 
 
 def call(identifier, name, **arguments):
@@ -67,7 +67,7 @@ def test_pazy_minimum_projection_no_sequences(monkeypatch):
             return httpx.Response(200, json={'count': 1, 'next': None, 'previous': None, 'results': [record]})
         return httpx.Response(200, json=record)
     monkeypatch.setattr(metadata, '_DEFAULT_CLIENT', PazyClient(transport=httpx.MockTransport(handler)))
-    monkeypatch.setattr('zymecycle.pazy.time.sleep', lambda delay: None)
+    monkeypatch.setattr('petzyme.pazy.time.sleep', lambda delay: None)
     state = AgentState('not-read')
     catalog = select_tool_catalog(interpret_request('Find PAZy enzyme information and literature.'))
     assert execute_tool_call(call('bad', 'get_pazy_metadata', protein_id=8), state, catalog)['status'] == 'ERROR'

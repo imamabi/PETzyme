@@ -1,7 +1,7 @@
 import json
 import pytest
 
-from zymecycle.pet_evidence import investigate_pet_evidence
+from petzyme.pet_evidence import investigate_pet_evidence
 
 
 def test_real_lcc_question_keeps_exact_gap_and_original_values():
@@ -54,8 +54,8 @@ def test_real_unmeasured_conditions_not_predicted(query,scope):
 
 
 def test_missing_source_no_network_fallback(monkeypatch):
-    from zymecycle.results import outcome
-    monkeypatch.setattr('zymecycle.pet_evidence.load_activity_source',lambda:outcome('ERROR',None,[],[],None))
+    from petzyme.results import outcome
+    monkeypatch.setattr('petzyme.pet_evidence.load_activity_source',lambda:outcome('ERROR',None,[],[],None))
     assert investigate_pet_evidence()['status']=='ERROR'
 
 
@@ -70,7 +70,7 @@ def test_unbound_proof_is_not_a_source_verification(proof):
 
 
 def test_unit_audit_must_match_the_actual_loaded_csv(monkeypatch):
-    from zymecycle import pet_evidence
+    from petzyme import pet_evidence
     original=pet_evidence.load_nrel
     def changed(path):
         loaded=original(path)
@@ -83,11 +83,11 @@ def test_unit_audit_must_match_the_actual_loaded_csv(monkeypatch):
 
 def test_historical_candidate_subset_is_insufficient_without_record_bound_proofs():
     from collections import Counter
-    from zymecycle.pet_retrieval import load_activity_source
-    from zymecycle.activity_snapshot import iter_assays
-    from zymecycle.observations import load_nrel,parse_nrel
-    from zymecycle.cross_overlap import candidate_protein_pairs
-    from zymecycle.cross_comparability import assess_cross_source_comparability,describe_nrel_observation,describe_pazy_assay
+    from petzyme.pet_retrieval import load_activity_source
+    from petzyme.activity_snapshot import iter_assays
+    from petzyme.observations import load_nrel,parse_nrel
+    from petzyme.cross_overlap import candidate_protein_pairs
+    from petzyme.cross_comparability import assess_cross_source_comparability,describe_nrel_observation,describe_pazy_assay
     s=load_activity_source()['result'];t=load_nrel()['result'];obs=parse_nrel(t)['result']['observations']
     names={'ESM050','DP043','DP003'}
     candidates={pid:name for pid,name in candidate_protein_pairs(s,t) if name in names}

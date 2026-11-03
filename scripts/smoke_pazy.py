@@ -1,6 +1,6 @@
 """Live smoke test. Emits only status and schema; never record values or IDs."""
 from datetime import datetime, timezone
-from zymecycle.pazy import PazyClient, PazyError, SOURCE
+from petzyme.pazy import PazyClient, PazyError, SOURCE
 
 
 def schema(record: dict) -> dict[str, str]:

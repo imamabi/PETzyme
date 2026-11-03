@@ -10,9 +10,9 @@ from test_build10_acceptance import (
     AMBIGUOUS,  # Reuse the existing synthetic input fixture; no new sequence copy.
 )
 
-from zymecycle.dialogue import prepare_dialogue_turn, validate_dialogue_context
-from zymecycle.meta import MODEL, MetaModelClient
-from zymecycle.ui_adapter import investigate_with_backend
+from petzyme.dialogue import prepare_dialogue_turn, validate_dialogue_context
+from petzyme.meta import MODEL, MetaModelClient
+from petzyme.ui_adapter import investigate_with_backend
 
 QUESTION = "Should I use ESM050 or LCCMC? My device supports 40C and 60C, but I cannot exceed pH 7."
 
@@ -145,7 +145,7 @@ def test_three_turn_identity_rejection_sequence_and_cumulative_budgets():
     )
     assert fourth["result"]["dialogue"]["context"]["model_attempts"] == 8
     assert fourth["result"]["dialogue"]["context"]["usage"]["actual_http_requests"] == 8
-    from zymecycle.runtime_config import RuntimeLimits
+    from petzyme.runtime_config import RuntimeLimits
 
     exhausted = fourth["result"]["dialogue"]["context"]
     exhausted["model_attempts"] = RuntimeLimits().session_models
@@ -190,7 +190,7 @@ def test_generalized_source_backed_spelling_confirmation():
 
 
 def test_raw_fasta_private_boundary_and_exact_reference_does_not_establish_function():
-    from zymecycle.observations import load_nrel, select_nrel_protein
+    from petzyme.observations import load_nrel, select_nrel_protein
 
     initial = run_turn(
         {"context": None, "text": QUESTION, "input_kind": "ANSWER"},
@@ -244,7 +244,7 @@ def test_forged_context_is_rejected_before_model(change):
 
 
 def test_unsafe_sequence_model_echo_is_blocked_before_scientific_execution():
-    from zymecycle.agent import run_investigation
+    from petzyme.agent import run_investigation
 
     _, context, seq = prepare_dialogue_turn(
         {"context": None, "text": QUESTION, "input_kind": "ANSWER"}
@@ -263,8 +263,8 @@ def test_unsafe_sequence_model_echo_is_blocked_before_scientific_execution():
 
 
 def test_scientific_scope_guard_rejects_unresolved_names_invented_ph_and_ranking():
-    from zymecycle.agent_types import AgentState
-    from zymecycle.dialogue import guard_dialogue_tool
+    from petzyme.agent_types import AgentState
+    from petzyme.dialogue import guard_dialogue_tool
 
     _, context, _ = prepare_dialogue_turn(
         {"context": None, "text": QUESTION, "input_kind": "ANSWER"}
@@ -318,7 +318,7 @@ def test_no_source_data_writes_or_logging_during_private_sequence_turn(monkeypat
 def test_existing_scientific_recommendation_contract_remains_canonical():
     from test_research_advisor_integration import AdviceTransport
 
-    from zymecycle.agent import run_investigation
+    from petzyme.agent import run_investigation
 
     scenario = AdviceTransport()
     q = "What experiment should I perform next to investigate ESM050 at 40°C versus 60°C, at pH 6.5, using crystalline PET powder? Use NREL and PAZy evidence."
@@ -333,7 +333,7 @@ def test_existing_scientific_recommendation_contract_remains_canonical():
 
 
 def test_plain_c_temperature_scope_matches_degree_notation_without_identifier_digits():
-    from zymecycle.agent_request import interpret_request
+    from petzyme.agent_request import interpret_request
 
     a = interpret_request(
         "What experiment should I perform next to investigate ESM050 at 40C versus 60C, at pH 6.5 using crystalline PET powder?"
@@ -346,7 +346,7 @@ def test_plain_c_temperature_scope_matches_degree_notation_without_identifier_di
 
 
 def test_real_advisor_continuation_after_explicit_within_bound_conditions_and_focus():
-    from zymecycle.observations import load_nrel, select_nrel_protein
+    from petzyme.observations import load_nrel, select_nrel_protein
 
     first = run_turn(
         {"context": None, "text": QUESTION, "input_kind": "ANSWER"},
@@ -429,7 +429,7 @@ def test_real_advisor_continuation_after_explicit_within_bound_conditions_and_fo
 
 
 def test_scientific_dialogue_cannot_omit_required_source_facts_even_when_partial():
-    from zymecycle.agent import run_investigation
+    from petzyme.agent import run_investigation
 
     _, c, _ = prepare_dialogue_turn({"context": None, "text": QUESTION, "input_kind": "ANSWER"})
     c["confirmed_labels"] = ["ESM050", None]
@@ -517,7 +517,7 @@ def test_safe_diagnostics_record_actual_omitted_count_without_model_prose():
 
 
 def test_plain_natural_clarification_with_no_factual_claims_needs_no_invented_lookup():
-    from zymecycle.agent import run_investigation
+    from petzyme.agent import run_investigation
 
     _, context, _ = prepare_dialogue_turn(
         {"context": None, "text": QUESTION, "input_kind": "ANSWER"}
@@ -551,7 +551,7 @@ def test_plain_natural_clarification_with_no_factual_claims_needs_no_invented_lo
 
 
 def test_supplied_sequence_cannot_be_described_or_clarified_without_real_local_triage():
-    from zymecycle.agent import run_investigation
+    from petzyme.agent import run_investigation
 
     _, context, _ = prepare_dialogue_turn(
         {"context": None, "text": QUESTION, "input_kind": "ANSWER"}
@@ -584,7 +584,7 @@ def test_supplied_sequence_cannot_be_described_or_clarified_without_real_local_t
 
 
 def test_session_limit_is_distinct_from_per_turn_and_exhaustion_sends_no_http():
-    from zymecycle.runtime_config import RuntimeLimits
+    from petzyme.runtime_config import RuntimeLimits
 
     limits = RuntimeLimits(turn_models=2, turn_tools=2, session_models=4, session_tools=4)
     first = DialogueTransport(["ESM050", "LCCMC"])
@@ -621,8 +621,8 @@ def test_session_limit_is_distinct_from_per_turn_and_exhaustion_sends_no_http():
 
 
 def test_nondefault_turn_budget_is_explicit_and_reported():
-    from zymecycle.agent import run_investigation
-    from zymecycle.runtime_config import RuntimeLimits
+    from petzyme.agent import run_investigation
+    from petzyme.runtime_config import RuntimeLimits
 
     class Stop:
         mode = "MOCK_META"

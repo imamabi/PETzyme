@@ -6,8 +6,8 @@ import os
 
 import httpx
 import pytest
-import zymecycle.pazy as pazy
-from zymecycle.pazy import PazyClient, PazyError
+import petzyme.pazy as pazy
+from petzyme.pazy import PazyClient, PazyError
 
 
 def page(results, next_url=None):

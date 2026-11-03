@@ -3,10 +3,10 @@ from __future__ import annotations
 import json
 import time
 import httpx
-from zymecycle.agent import run_investigation
-from zymecycle.advisor_types import ResearcherConstraints
-from zymecycle.meta import MetaModelClient
-from zymecycle.observations import load_nrel
+from petzyme.agent import run_investigation
+from petzyme.advisor_types import ResearcherConstraints
+from petzyme.meta import MetaModelClient
+from petzyme.observations import load_nrel
 
 QUESTIONS = {
     'A': 'What experiment should I conduct to determine whether ESM050 performs better at 60°C than at 40°C, at pH 6.5 using crystalline PET powder?',

@@ -3,7 +3,7 @@ import json
 import pytest
 from test_evidence import observations, documented
 
-from zymecycle.comparability import check_comparability
+from petzyme.comparability import check_comparability
 
 
 def test_same_column_descriptive_but_units_limited(observations):
@@ -85,7 +85,7 @@ def test_descriptive_numbers_require_complete_source_bound_comparability(source_
     assert numeric['evidence_category'] == 'COMPUTED'
     assert numeric['metadata_basis'] == 'CALLER_SUPPLIED_SOURCE_BOUND_NOT_INDEPENDENTLY_AUTHENTICATED'
     assert 'numerical_comparison' not in check_comparability(selected, varying_variable='temperature_c')['result']
-    from zymecycle.agent_evidence import project_evidence
+    from petzyme.agent_evidence import project_evidence
     projection, facts = project_evidence('synthetic_compare', 'check_comparability',
                                          check_comparability(selected, documented(selected), varying_variable='temperature_c'))
     assert projection['numerical_comparison']['difference_b_minus_a'] == '1'
@@ -100,8 +100,8 @@ def test_zero_baseline_never_invents_a_ratio_or_percentage(source_observations):
 
 
 def test_optional_numerical_result_does_not_make_legacy_investigations_invalid(source_observations):
-    from zymecycle.conditions import investigate_conditions
-    from zymecycle.tools import invoke_tool
+    from petzyme.conditions import investigate_conditions
+    from petzyme.tools import invoke_tool
 
     a = {'temperature_c': 40, 'ph': 6.5, 'pet_form': 'CRYSTALLINE_POWDER'}
     b = {**a, 'temperature_c': 60}

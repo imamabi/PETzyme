@@ -2,8 +2,8 @@ from copy import deepcopy
 import pytest
 from test_advisor_candidates import investigation
 from test_evidence import observations
-from zymecycle.advisor_candidates import generate_experiment_candidates
-from zymecycle.advisor_feasibility import assess_experiment_feasibility
+from petzyme.advisor_candidates import generate_experiment_candidates
+from petzyme.advisor_feasibility import assess_experiment_feasibility
 
 
 @pytest.fixture

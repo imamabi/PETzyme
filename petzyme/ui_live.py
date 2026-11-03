@@ -157,7 +157,7 @@ def run_keychain_investigation(
         "--",
         sys.executable,
         "-m",
-        "zymecycle.ui_live",
+        "petzyme.ui_live",
         "--live-worker",
     ]
     # The fixed local launcher receives the process credential when supplied;

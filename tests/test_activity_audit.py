@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 from test_activity_snapshot import records, load
-from zymecycle.activity_audit import audit_pazy_pet_assays, audit_publication_workbook_links, field_coverage
+from petzyme.activity_audit import audit_pazy_pet_assays, audit_publication_workbook_links, field_coverage
 
 
 def test_nested_counts_pet_filter_and_missing_measurements(tmp_path,records):

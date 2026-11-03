@@ -7,15 +7,15 @@ import pytest
 import test_decision
 from test_decision import selection, validate
 
-from zymecycle.agent_types import AgentState
-from zymecycle.decision import DecisionError
-from zymecycle.decision_context import (
+from petzyme.agent_types import AgentState
+from petzyme.decision import DecisionError
+from petzyme.decision_context import (
     decision_model_context,
     restore_decision_evidence,
     retain_decision,
     valid_decision_session,
 )
-from zymecycle.privacy import outbound_safe
+from petzyme.privacy import outbound_safe
 
 
 @pytest.fixture
@@ -97,7 +97,7 @@ def test_prior_temperature_representation_is_the_same_numeric_contract_as_new_pr
 
 
 def test_all_six_revalidated_cells_get_canonical_facts_not_a_five_item_prefix(state):
-    from zymecycle.observations import load_nrel, parse_nrel
+    from petzyme.observations import load_nrel, parse_nrel
 
     all_obs = parse_nrel(load_nrel()["result"])["result"]["observations"]
     state.decision_observations.extend(

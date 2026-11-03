@@ -2,11 +2,11 @@ import json
 import pytest
 from test_agent import csv_path
 from test_esm import SyntheticRuntime
-from zymecycle import esm
-from zymecycle.results import outcome
-from zymecycle.ui_adapter import EXAMPLES, run_offline, investigate_with_backend, present_investigation
+from petzyme import esm
+from petzyme.results import outcome
+from petzyme.ui_adapter import EXAMPLES, run_offline, investigate_with_backend, present_investigation
 from scripts.demo_build03 import ScenarioMeta, QUESTIONS
-from zymecycle.meta import MetaModelClient
+from petzyme.meta import MetaModelClient
 import httpx
 
 
@@ -51,7 +51,7 @@ def test_real_nrel_values_are_not_reconstructed_from_facts():
 
 def test_unsupported_offline_question_does_not_execute(monkeypatch):
     def forbidden(*args, **kwargs): raise AssertionError('No execution for unsupported question')
-    monkeypatch.setattr('zymecycle.ui_adapter.run_investigation', forbidden)
+    monkeypatch.setattr('petzyme.ui_adapter.run_investigation', forbidden)
     assert run_offline('Invent a catalytic prediction')['status'] == 'ERROR'
 
 
@@ -63,13 +63,13 @@ def test_errors_and_partial_views_preserve_actual_status(csv_path):
 
 
 def test_pazy_records_do_not_enter_view_or_session_data(monkeypatch, csv_path):
-    from zymecycle import metadata
-    from zymecycle.pazy import PazyClient
+    from petzyme import metadata
+    from petzyme.pazy import PazyClient
     record = {'id': 777, 'name': 'PRIVATE_NAME', 'amino_acid_sequence': 'ACDEF'*20, 'literature': []}
     def handler(request):
         return httpx.Response(200,json=({'count':1,'results':[record],'next':None} if request.url.path=='/api/proteins/' else record))
     monkeypatch.setattr(metadata,'_DEFAULT_CLIENT',PazyClient(transport=httpx.MockTransport(handler)))
-    monkeypatch.setattr('zymecycle.pazy.time.sleep',lambda delay:None)
+    monkeypatch.setattr('petzyme.pazy.time.sleep',lambda delay:None)
     result = investigate_with_backend(QUESTIONS['D'], MetaModelClient(transport=httpx.MockTransport(ScenarioMeta('D').respond)), csv_path=csv_path)
     text = json.dumps(result)
     assert 'PRIVATE_NAME' not in text and '777' not in text and 'ACDEF'*20 not in text

@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import argparse
 
-from zymecycle.agent import run_investigation
-from zymecycle.agent_reporting import format_research_report
-from zymecycle.meta import COMPLETION_ALLOWANCES, MAX_COMPLETION_TOKENS, MetaModelClient
-from zymecycle.runtime_config import RuntimeLimits
+from petzyme.agent import run_investigation
+from petzyme.agent_reporting import format_research_report
+from petzyme.meta import COMPLETION_ALLOWANCES, MAX_COMPLETION_TOKENS, MetaModelClient
+from petzyme.runtime_config import RuntimeLimits
 
 
 def main(argv: list[str] | None = None) -> int:

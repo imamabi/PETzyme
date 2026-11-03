@@ -1,5 +1,5 @@
 import pytest
-from zymecycle.agent_request import interpret_request, select_tool_catalog
+from petzyme.agent_request import interpret_request, select_tool_catalog
 
 
 def test_multistudy_comparison_exposes_existing_record_comparison_tools():

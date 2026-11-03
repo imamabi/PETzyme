@@ -9,12 +9,12 @@ import pytest
 from streamlit.testing.v1 import AppTest
 from test_researcher_workflow import workbook_fixture
 
-from zymecycle import nrel_units
-from zymecycle.enzyme_discovery import discover_pet_enzymes
-from zymecycle.observations import load_nrel, parse_nrel
-from zymecycle.research_advisor import advise_next_experiment
-from zymecycle.ui_adapter import run_offline
-from zymecycle.ui_experiments import combined_experimental_rows
+from petzyme import nrel_units
+from petzyme.enzyme_discovery import discover_pet_enzymes
+from petzyme.observations import load_nrel, parse_nrel
+from petzyme.research_advisor import advise_next_experiment
+from petzyme.ui_adapter import run_offline
+from petzyme.ui_experiments import combined_experimental_rows
 
 ROOT = Path(__file__).resolve().parents[1]
 A = {"temperature_c": 40, "ph": 6.5, "pet_form": "CRYSTALLINE_POWDER"}
@@ -249,10 +249,10 @@ def test_real_streamlit_landscape_is_transient_and_originals_are_accessible(monk
 def test_bad_unit_metadata_does_not_hide_other_reported_source_measurements():
     from typing import cast
 
-    from zymecycle.pet_evidence import investigate_pet_evidence
-    from zymecycle.pet_presenter import preview_pet_evidence
-    from zymecycle.privacy import safe_public_text
-    from zymecycle.ui_experiments import CombinedExperimentalPreview
+    from petzyme.pet_evidence import investigate_pet_evidence
+    from petzyme.pet_presenter import preview_pet_evidence
+    from petzyme.privacy import safe_public_text
+    from petzyme.ui_experiments import CombinedExperimentalPreview
 
     native = investigate_pet_evidence({"protein_name": "ESM050", "ph": 6.5, "form": "powder"})[
         "result"
@@ -276,7 +276,7 @@ def test_bad_unit_metadata_does_not_hide_other_reported_source_measurements():
 
 
 def test_morphology_filter_does_not_assign_amorphous_powder_to_crystalline_nrel():
-    from zymecycle.pet_evidence import investigate_pet_evidence
+    from petzyme.pet_evidence import investigate_pet_evidence
 
     result = investigate_pet_evidence(
         {

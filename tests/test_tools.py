@@ -9,9 +9,9 @@ from typing import get_type_hints
 import httpx
 import pytest
 
-from zymecycle import metadata
-from zymecycle.pazy import PazyClient
-from zymecycle.tools import TOOL_FUNCTIONS, describe_tools, invoke_tool
+from petzyme import metadata
+from petzyme.pazy import PazyClient
+from petzyme.tools import TOOL_FUNCTIONS, describe_tools, invoke_tool
 
 
 def test_discovery_has_typed_callable_contracts():
@@ -63,7 +63,7 @@ def test_dispatch_pazy_is_ephemeral(monkeypatch, tmp_path, caplog, capsys):
         return httpx.Response(200, json={'id': 1, 'name': 'SYNTHETIC_SECRET',
                                          'amino_acid_sequence': 'ACDEF', 'literature': []})
     monkeypatch.setattr(metadata, '_DEFAULT_CLIENT', PazyClient(transport=httpx.MockTransport(handler)))
-    monkeypatch.setattr('zymecycle.pazy.time.sleep', lambda delay: None)
+    monkeypatch.setattr('petzyme.pazy.time.sleep', lambda delay: None)
     monkeypatch.chdir(tmp_path)
     def forbidden(*args, **kwargs):
         pytest.fail('Dispatcher attempted to persist a PAZy result')
@@ -108,7 +108,7 @@ def test_huge_condition_and_invalid_name_are_structured_errors():
 
 
 def test_public_argument_validator():
-    from zymecycle.tools import validate_arguments
+    from petzyme.tools import validate_arguments
     schema = {'type': 'object', 'properties': {'limit': {'type': 'integer'}},
               'required': ['limit'], 'additionalProperties': False}
     assert validate_arguments({'limit': 1}, schema)

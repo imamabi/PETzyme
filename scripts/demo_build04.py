@@ -6,13 +6,13 @@ import math
 import time
 import httpx
 
-from zymecycle.agent import run_investigation
-from zymecycle.agent_reporting import format_research_report
-from zymecycle.esm import compare_protein_embeddings, embed_protein, load_esm2_runtime
-from zymecycle.meta import MetaModelClient
-from zymecycle.observations import load_nrel, select_nrel_protein
-from zymecycle.protein_sequences import prepare_protein_sequence
-from zymecycle.protein_similarity import find_similar_nrel_proteins
+from petzyme.agent import run_investigation
+from petzyme.agent_reporting import format_research_report
+from petzyme.esm import compare_protein_embeddings, embed_protein, load_esm2_runtime
+from petzyme.meta import MetaModelClient
+from petzyme.observations import load_nrel, select_nrel_protein
+from petzyme.protein_sequences import prepare_protein_sequence
+from petzyme.protein_similarity import find_similar_nrel_proteins
 
 QUESTION = 'Find proteins with ESM-2 representations similar to LCC-ICCG.'
 

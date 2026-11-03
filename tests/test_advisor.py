@@ -4,10 +4,10 @@ import json
 import pytest
 from test_advisor_candidates import investigation
 from test_evidence import A, B, observations, documented
-from zymecycle.advisor import prioritize_experiments, recommend_next_experiments
-from zymecycle.advisor_candidates import generate_experiment_candidates
-from zymecycle.advisor_feasibility import assess_experiment_feasibility
-from zymecycle.conditions import investigate_conditions
+from petzyme.advisor import prioritize_experiments, recommend_next_experiments
+from petzyme.advisor_candidates import generate_experiment_candidates
+from petzyme.advisor_feasibility import assess_experiment_feasibility
+from petzyme.conditions import investigate_conditions
 
 
 def ranked_inputs(inv):

@@ -6,17 +6,17 @@ from pathlib import Path
 
 import pytest
 
-from zymecycle.agent import run_investigation
-from zymecycle.agent_request import interpret_request
-from zymecycle.communication import canonical_explanation, validate_explanation
-from zymecycle.evidence_records import experimental_records, reported_response
-from zymecycle.experimental_window import parse_experimental_window, within_window
-from zymecycle.pet_evidence import investigate_pet_evidence
-from zymecycle.pet_presenter import preview_pet_evidence
-from zymecycle.privacy import safe_public_text
-from zymecycle.research_advisor import advise_next_experiment
-from zymecycle.research_planning import needs_semantic_plan, validate_research_plan
-from zymecycle.ui_adapter import run_offline
+from petzyme.agent import run_investigation
+from petzyme.agent_request import interpret_request
+from petzyme.communication import canonical_explanation, validate_explanation
+from petzyme.evidence_records import experimental_records, reported_response
+from petzyme.experimental_window import parse_experimental_window, within_window
+from petzyme.pet_evidence import investigate_pet_evidence
+from petzyme.pet_presenter import preview_pet_evidence
+from petzyme.privacy import safe_public_text
+from petzyme.research_advisor import advise_next_experiment
+from petzyme.research_planning import needs_semantic_plan, validate_research_plan
+from petzyme.ui_adapter import run_offline
 
 QUESTIONS = [
     "To get a high activity for PET breakdown what are the most proficient experiments?",
@@ -222,7 +222,7 @@ def test_source_only_receipt_excludes_without_consulting_other_source(monkeypatc
     def forbidden(*a, **kw):
         pytest.fail("Excluded PAZy source was accessed")
 
-    monkeypatch.setattr("zymecycle.pet_evidence.load_activity_source", forbidden)
+    monkeypatch.setattr("petzyme.pet_evidence.load_activity_source", forbidden)
     v = run_offline("Investigate NREL-only evidence for ESM050.")["result"]
     assert v["source_coverage"][1]["status"] == "EXCLUDED"
     assert v["source_coverage"][1]["query_attempts"] == 0
@@ -291,7 +291,7 @@ def test_common_records_preserve_each_endpoint_and_qualified_unit_separately():
 
 
 def test_qualifiers_and_categorical_results_are_not_forced_to_numeric_values():
-    from zymecycle.ui_findings import display_response
+    from petzyme.ui_findings import display_response
 
     assert display_response("Not documented") == "Not documented"
     assert display_response("< 0.1") == "< 0.1"
@@ -318,7 +318,7 @@ def test_source_response_missing_and_invalid_are_never_coerced_to_zero(record, e
 
 
 def test_esm050_film_zero_is_present_in_pinned_source():
-    from zymecycle.pet_retrieval import load_activity_source, match_pet_assays
+    from petzyme.pet_retrieval import load_activity_source, match_pet_assays
 
     snapshot = load_activity_source()['result']
     assays = match_pet_assays(snapshot, {'protein_name': 'ESM050', 'temperature_c': 40,
@@ -329,7 +329,7 @@ def test_esm050_film_zero_is_present_in_pinned_source():
 
 
 def test_root_dataset_pin_rejects_valid_but_modified_csv(monkeypatch):
-    from zymecycle.observations import load_nrel
+    from petzyme.observations import load_nrel
 
     root = Path(__file__).resolve().parents[1]
     original = Path.read_bytes
@@ -344,8 +344,8 @@ def test_root_dataset_pin_rejects_valid_but_modified_csv(monkeypatch):
 
 
 def test_scientific_runtime_failure_preserves_already_executed_evidence(monkeypatch):
-    from zymecycle import agent_execution
-    from zymecycle.ui_adapter import investigate_with_backend
+    from petzyme import agent_execution
+    from petzyme.ui_adapter import investigate_with_backend
 
     original = agent_execution.invoke_tool
 
@@ -372,8 +372,8 @@ def test_scientific_runtime_failure_preserves_already_executed_evidence(monkeypa
 
 
 def test_model_budget_exhaustion_does_not_erase_the_matching_query():
-    from zymecycle.runtime_config import RuntimeLimits
-    from zymecycle.ui_adapter import investigate_with_backend
+    from petzyme.runtime_config import RuntimeLimits
+    from petzyme.ui_adapter import investigate_with_backend
 
     backend = NativeScript(
         [
@@ -407,7 +407,7 @@ def test_nonpreset_exact_advice_uses_both_sources_without_filling_conditions():
 
 
 def test_native_nrel_union_is_not_lost_behind_a_smaller_source_preview():
-    from zymecycle.ui_adapter import investigate_with_backend
+    from petzyme.ui_adapter import investigate_with_backend
 
     backend = NativeScript(
         [
@@ -431,8 +431,8 @@ def test_native_nrel_union_is_not_lost_behind_a_smaller_source_preview():
 
 
 def test_retained_source_restriction_is_not_silently_ignored():
-    from zymecycle.dialogue import prepare_dialogue_turn
-    from zymecycle.scientific_scope import ScientificScopeError
+    from petzyme.dialogue import prepare_dialogue_turn
+    from petzyme.scientific_scope import ScientificScopeError
 
     with pytest.raises(ScientificScopeError, match="source restriction"):
         prepare_dialogue_turn(
@@ -465,7 +465,7 @@ def test_broad_nonpreset_planning_keeps_the_integrated_advisor():
 
 
 def test_open_planning_does_not_hide_an_executed_conditional_experiment():
-    from zymecycle.ui_findings import result_overview
+    from petzyme.ui_findings import result_overview
 
     view = run_offline(
         "Investigate ESM050. What experimental conditions and outcomes are reported, and what should I test next?"
@@ -528,7 +528,7 @@ def test_semantic_plan_cannot_duplicate_one_identity_as_two_targets():
 def test_oneshot_form_uses_fresh_consent_and_current_accounting_without_replay(monkeypatch):
     from streamlit.testing.v1 import AppTest
 
-    from zymecycle import ui_live
+    from petzyme import ui_live
 
     calls = []
 
@@ -589,8 +589,8 @@ def test_sequence_supplied_as_answer_is_not_echoed_as_the_display_question():
     from test_build10_acceptance import AMBIGUOUS
     from test_dialogue import QUESTION, DialogueTransport, run_turn
 
-    from zymecycle.meta import MetaModelClient
-    from zymecycle.ui_adapter import investigate_with_backend
+    from petzyme.meta import MetaModelClient
+    from petzyme.ui_adapter import investigate_with_backend
 
     context = run_turn(
         {"context": None, "text": QUESTION, "input_kind": "ANSWER"},
@@ -618,7 +618,7 @@ def test_provider_diagnostics_retain_counts_even_without_new_tool_findings():
 
     script = """
 from test_decision_integration import PlanningTransport,first_payload,run
-from zymecycle.ui_runtime import render_provider_usage
+from petzyme.ui_runtime import render_provider_usage
 first=run(first_payload(),PlanningTransport())["result"]
 second=run({"context":first["dialogue"]["context"],"text":"I can only run experiments at 40C now.","input_kind":"ANSWER"},PlanningTransport(continuation=True))["result"]
 render_provider_usage(second)
@@ -634,11 +634,11 @@ render_provider_usage(second)
 
 @pytest.mark.parametrize("mode,code", [("schema", "ARGUMENT_SCHEMA"), ("target", "DIALOGUE_GUARD")])
 def test_safe_tool_failure_stage_is_available_to_model_and_ui(mode, code):
-    from zymecycle.agent_evidence import model_evidence, public_tool_update
-    from zymecycle.agent_execution import execute_tool_call
-    from zymecycle.agent_types import AgentState
-    from zymecycle.dialogue import prepare_dialogue_turn
-    from zymecycle.dialogue_rules import dialogue_catalog
+    from petzyme.agent_evidence import model_evidence, public_tool_update
+    from petzyme.agent_execution import execute_tool_call
+    from petzyme.agent_types import AgentState
+    from petzyme.dialogue import prepare_dialogue_turn
+    from petzyme.dialogue_rules import dialogue_catalog
 
     q, context, _ = prepare_dialogue_turn(
         {
@@ -674,7 +674,7 @@ def test_safe_tool_failure_stage_is_available_to_model_and_ui(mode, code):
 
 
 def semantic_screen_view():
-    from zymecycle.ui_adapter import investigate_with_backend
+    from petzyme.ui_adapter import investigate_with_backend
 
     q = "I’m arranging a PET bench screen. Which evidence-backed starting panel merits attention, with the assay settings that were actually used?"
     return investigate_with_backend(
@@ -693,7 +693,7 @@ def test_semantic_discovery_is_visible_when_only_the_metric_is_unspecified():
     assert view["scientific_scope"]["background_only"] and not view["scientific_scope"]["issues"]
 
     def render(v):
-        from zymecycle.ui_results import render_result
+        from petzyme.ui_results import render_result
 
         render_result(v, lambda: None)
 
@@ -715,7 +715,7 @@ def test_qualified_discovery_display_cannot_bypass_an_explicit_scope_mismatch(na
     view["synthesis"] = blocked["synthesis"]
 
     def render(v):
-        from zymecycle.ui_results import render_result
+        from petzyme.ui_results import render_result
 
         render_result(v, lambda: None)
 
@@ -728,7 +728,7 @@ def test_qualified_discovery_display_cannot_bypass_an_explicit_scope_mismatch(na
 def test_composed_discovery_does_not_hide_executed_advisor_or_combined_measurements():
     from streamlit.testing.v1 import AppTest
 
-    from zymecycle.ui_adapter import investigate_with_backend
+    from petzyme.ui_adapter import investigate_with_backend
 
     # Controlled offline orchestration, never a claimed autonomous model acceptance.
     backend = NativeScript(
@@ -741,7 +741,7 @@ def test_composed_discovery_does_not_hide_executed_advisor_or_combined_measureme
     assert view["plan"] and view["multi_study"] and view["discovery"]
 
     def render(v):
-        from zymecycle.ui_results import render_result
+        from petzyme.ui_results import render_result
 
         render_result(v, lambda: None)
 
@@ -786,8 +786,8 @@ def test_advisor_composition_cannot_claim_an_unexecuted_discovery_step():
 
 
 def test_representation_only_workflow_does_not_claim_missing_activity_retrieval():
-    from zymecycle.agent_types import AgentState
-    from zymecycle.source_coverage import source_receipts
+    from petzyme.agent_types import AgentState
+    from petzyme.source_coverage import source_receipts
 
     receipts = source_receipts(
         interpret_request("Find proteins similar to LCC-ICCG using ESM-2."), AgentState("unused")
@@ -798,7 +798,7 @@ def test_representation_only_workflow_does_not_claim_missing_activity_retrieval(
 
 
 def test_coarse_source_cue_does_not_hide_discovery_and_planning_capabilities():
-    from zymecycle.agent_request import select_tool_catalog
+    from petzyme.agent_request import select_tool_catalog
 
     q = "I’m organizing a PET bench screen. Give me an evidence-backed enzyme shortlist, the documented assay settings, and a sensible follow-on bench study."
     request = interpret_request(q)
@@ -869,8 +869,8 @@ def test_unrecovered_failed_instrument_does_not_gain_verified_communication():
 
 
 def test_whole_catalog_is_screened_without_relaxing_private_sequence_detection(monkeypatch):
-    from zymecycle import agent
-    from zymecycle.agent_request import select_tool_catalog
+    from petzyme import agent
+    from petzyme.agent_request import select_tool_catalog
 
     original = select_tool_catalog
 
@@ -890,7 +890,7 @@ def test_whole_catalog_is_screened_without_relaxing_private_sequence_detection(m
 
 
 def test_unnamed_semantic_experiment_plan_does_not_expose_live_protein_catalog():
-    from zymecycle.agent_request import select_tool_catalog
+    from petzyme.agent_request import select_tool_catalog
 
     request = validate_research_plan(
         {"objectives": ["experiment_advice"], "enzyme_identifiers": []},
@@ -926,7 +926,7 @@ def test_nrel_only_review_with_exact_conditions_executes_local_tools_without_sem
 
 
 def test_semantic_planning_receives_policy_and_cannot_invent_an_exact_advisor_pair():
-    from zymecycle.agent_request import PLANNING_POLICY, select_tool_catalog
+    from petzyme.agent_request import PLANNING_POLICY, select_tool_catalog
 
     q = "For a PET bench screen, point me toward a useful starting panel."
     backend = NativeScript(
@@ -969,7 +969,7 @@ def test_semantic_planning_receives_policy_and_cannot_invent_an_exact_advisor_pa
 
 
 def test_requested_exact_pair_remains_available_to_the_scientific_advisor():
-    from zymecycle.agent_request import select_tool_catalog
+    from petzyme.agent_request import select_tool_catalog
 
     q = "What experiment should I perform next for ESM050 at 40C versus 60C, pH 6.5, crystalline PET powder using NREL and PAZy?"
     advisor = next(

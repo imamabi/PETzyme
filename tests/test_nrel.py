@@ -5,7 +5,7 @@ import tarfile
 from pathlib import Path
 
 import pytest
-from zymecycle.nrel import NrelError, extract_labels, load_csv, verify_checksum
+from petzyme.nrel import NrelError, extract_labels, load_csv, verify_checksum
 
 
 def make_tar(path, members):
@@ -109,14 +109,14 @@ def test_downloaded_nrel_against_manifest():
 
 
 def test_shared_parser_preserves_quoted_newlines():
-    from zymecycle.nrel import parse_csv_text
+    from petzyme.nrel import parse_csv_text
     assert parse_csv_text('id,note\r\n001,"keep\r\nnewline"\r\n') == (
         ['id', 'note'], [['001', 'keep\r\nnewline']])
 
 
 def test_prepare_preserves_existing_reconciliation_and_is_idempotent(tmp_path, monkeypatch):
     import httpx
-    from zymecycle import nrel
+    from petzyme import nrel
 
     csv = b'id,value\nE1,1.00\n'
     source = tmp_path / 'source.tar.gz'
@@ -148,7 +148,7 @@ def test_prepare_preserves_existing_reconciliation_and_is_idempotent(tmp_path, m
 
 
 def test_prepare_rejects_existing_csv_hash_mismatch_without_changing_manifest(tmp_path):
-    from zymecycle import nrel
+    from petzyme import nrel
 
     directory = tmp_path / 'data/nrel'
     directory.mkdir(parents=True)

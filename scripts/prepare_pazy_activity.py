@@ -7,7 +7,7 @@ from typing import TypedDict
 
 import httpx
 
-from zymecycle.activity_snapshot import (
+from petzyme.activity_snapshot import (
     FILENAME,
     MAX_COMPRESSED,
     SHA256,

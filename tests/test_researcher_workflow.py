@@ -10,12 +10,12 @@ import pytest
 from streamlit.testing.v1 import AppTest
 from test_scientific_scope import ENDPOINT, KINETIC, POLYPROPYLENE, AllPetFacts
 
+from petzyme.agent import run_investigation
+from petzyme.agent_request import interpret_request, required_tool_steps, select_tool_catalog
+from petzyme.runtime_config import RuntimeLimits, parse_runtime_limits
+from petzyme.ui_adapter import investigate_with_backend
+from petzyme.unit_context import unit_context
 from scripts.audit_nrel_units import read_activity_workbook, reconcile_nrel
-from zymecycle.agent import run_investigation
-from zymecycle.agent_request import interpret_request, required_tool_steps, select_tool_catalog
-from zymecycle.runtime_config import RuntimeLimits, parse_runtime_limits
-from zymecycle.ui_adapter import investigate_with_backend
-from zymecycle.unit_context import unit_context
 
 QUESTION = "I want to perform experiment for ESM050, what are the recommended conditions for optimal performance?"
 
@@ -278,7 +278,7 @@ def test_planning_never_weakens_grounding_or_accepts_unspecified_conditions(bad)
 
 
 def test_spending_guard_has_a_separate_safe_status():
-    from zymecycle.agent_types import ReasoningError
+    from petzyme.agent_types import ReasoningError
 
     class Blocked:
         mode = "MOCK_META"
@@ -301,7 +301,7 @@ def test_live_ui_configuration_applies_before_launch_and_reruns_do_not_repeat(mo
             question, PlanningBackend(), runtime_limits=kwargs["runtime_limits"]
         )
 
-    monkeypatch.setattr("zymecycle.ui_live.run_keychain_investigation", fake)
+    monkeypatch.setattr("petzyme.ui_live.run_keychain_investigation", fake)
     app = AppTest.from_file(
         Path(__file__).resolve().parents[1] / "tests/legacy_streamlit_app.py", default_timeout=30
     ).run()
@@ -397,7 +397,7 @@ def test_actual_xlsx_parser_uses_cached_values_not_invented_formulas():
 
 
 def test_planning_ui_clarification_and_four_unit_levels_with_real_evidence():
-    source = 'from test_researcher_workflow import QUESTION,PlanningBackend\nfrom zymecycle.ui_adapter import investigate_with_backend\nfrom streamlit_app import render_findings\nrender_findings(investigate_with_backend(QUESTION,PlanningBackend())["result"])'
+    source = 'from test_researcher_workflow import QUESTION,PlanningBackend\nfrom petzyme.ui_adapter import investigate_with_backend\nfrom streamlit_app import render_findings\nrender_findings(investigate_with_backend(QUESTION,PlanningBackend())["result"])'
     app = AppTest.from_string(
         'import sys\nsys.path.insert(0,"tests")\n' + source, default_timeout=30
     ).run()
@@ -412,8 +412,8 @@ def test_planning_ui_clarification_and_four_unit_levels_with_real_evidence():
 def test_runtime_controls_and_aggregate_ledger_survive_resets_without_records():
     source = """
 import streamlit as st
-from zymecycle.ui_runtime import runtime_controls,remaining_limits,runtime_ledger
-from zymecycle.ui_dialogue import clear_live_dialogue
+from petzyme.ui_runtime import runtime_controls,remaining_limits,runtime_ledger
+from petzyme.ui_dialogue import clear_live_dialogue
 limits=runtime_controls("check")
 st.text(str(remaining_limits(limits)[0].values()))
 st.button("Reset",on_click=clear_live_dialogue)
@@ -443,7 +443,7 @@ st.button("Reset",on_click=clear_live_dialogue)
 
 
 def test_uncertain_worker_holds_budget_and_known_usage_reconciles(monkeypatch):
-    from zymecycle import ui_runtime
+    from petzyme import ui_runtime
 
     monkeypatch.setattr(ui_runtime.st, "session_state", {})
     limits = RuntimeLimits(session_cost_usd=1)
@@ -509,7 +509,7 @@ def test_fully_specified_optimization_keeps_exact_condition_advisor():
 def test_canonical_planning_explanation_accepts_only_the_clarification_state():
     from test_communication import draft_from_facts
 
-    from zymecycle.communication import validate_explanation
+    from petzyme.communication import validate_explanation
 
     class CompletePlanning(PlanningBackend):
         # The cross-source composition is required for broad planning; the scripted
@@ -552,7 +552,7 @@ def test_canonical_planning_explanation_accepts_only_the_clarification_state():
 def test_planning_explanation_does_not_relax_scientific_or_citation_rules(mode):
     from test_communication import draft_from_facts
 
-    from zymecycle.communication import validate_explanation
+    from petzyme.communication import validate_explanation
 
     report = run_investigation(QUESTION, PlanningBackend())["result"]
     draft = draft_from_facts(report["facts"])

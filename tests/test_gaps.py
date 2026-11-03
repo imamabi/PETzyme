@@ -1,7 +1,7 @@
 import json
 from test_evidence import A, B, observations, documented
-from zymecycle.conditions import investigate_conditions
-from zymecycle.gaps import identify_evidence_gaps
+from petzyme.conditions import investigate_conditions
+from petzyme.gaps import identify_evidence_gaps
 
 
 def test_ordered_needs_no_fabricated_outcomes(observations):

@@ -4,7 +4,7 @@ import json
 import pytest
 
 from test_activity_snapshot import records, load
-from zymecycle.pet_retrieval import load_activity_source, match_pet_assays, retrieve_pet_assays
+from petzyme.pet_retrieval import load_activity_source, match_pet_assays, retrieve_pet_assays
 
 
 @pytest.fixture(scope='module')
@@ -92,14 +92,14 @@ def test_truncation_counts_measurements_even_one_assay(tmp_path,records):
 
 
 def test_projection_and_selection_cannot_bypass_bounds(real_snapshot):
-    from zymecycle.pet_retrieval import project_pet_assays,diverse_assays
+    from petzyme.pet_retrieval import project_pet_assays,diverse_assays
     for limit in (0,4,True):
         assert project_pet_assays(real_snapshot,[],{},limit)['status']=='ERROR'
         with pytest.raises(ValueError):diverse_assays([],limit)
 
 
 def test_changed_manifest_pin_fails_closed(tmp_path,monkeypatch):
-    from zymecycle import pet_retrieval
+    from petzyme import pet_retrieval
     (tmp_path/'PAZY_SOURCE_MANIFEST.json').write_text(json.dumps({'filename':'not-authorized.gz'}))
     monkeypatch.setattr(pet_retrieval,'ROOT',tmp_path)
     assert pet_retrieval.load_activity_source()['status']=='ERROR'

@@ -5,8 +5,8 @@ import os
 
 import httpx
 from scripts.demo_build02 import bounded_identity_check, local_demonstrations, main, privacy_summary
-from zymecycle.observations import load_nrel
-from zymecycle.pazy import PazyClient
+from petzyme.observations import load_nrel
+from petzyme.pazy import PazyClient
 
 
 def table(tmp_path):
@@ -30,7 +30,7 @@ def test_shared_sequence_identity_and_omitted_references(tmp_path, monkeypatch, 
         assert request.url.path == '/api/proteins/7/'
         return httpx.Response(200, json=record)
     client = PazyClient(transport=httpx.MockTransport(handler))
-    monkeypatch.setattr('zymecycle.pazy.time.sleep', lambda delay: None)
+    monkeypatch.setattr('petzyme.pazy.time.sleep', lambda delay: None)
     def forbidden(*args, **kwargs):
         raise AssertionError('PAZy identity check attempted file access')
     with monkeypatch.context() as guard:
@@ -72,7 +72,7 @@ def test_service_failure_and_changed_detail(tmp_path, monkeypatch):
             return httpx.Response(200, json={'count': 1, 'next': None, 'previous': None,
                                             'results': [{'id': 1, 'amino_acid_sequence': 'ACDEF'}]})
         return httpx.Response(200, json={'id': 1, 'amino_acid_sequence': 'ACDEG'})
-    monkeypatch.setattr('zymecycle.pazy.time.sleep', lambda delay: None)
+    monkeypatch.setattr('petzyme.pazy.time.sleep', lambda delay: None)
     api = PazyClient(transport=httpx.MockTransport(handler))
     assert bounded_identity_check(local, client=api)['status'] == 'NO_DATA'
 

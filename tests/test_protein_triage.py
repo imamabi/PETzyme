@@ -3,9 +3,9 @@ import hashlib
 import json
 from pathlib import Path
 import pytest
-from zymecycle import protein_triage as triage
-from zymecycle.observations import load_nrel, select_nrel_protein
-from zymecycle.results import outcome
+from petzyme import protein_triage as triage
+from petzyme.observations import load_nrel, select_nrel_protein
+from petzyme.results import outcome
 
 SEQ = 'ACDEFGHIKLMNPQRSTVWY' * 3
 OTHER = 'YWVTSRQPNMLKIHGFEDCA' * 3
@@ -126,7 +126,7 @@ def test_real_local_sequence_authenticated_and_fragment_only_candidate():
 
 def test_no_inference_network_or_writes(local,monkeypatch,capsys,caplog):
     import builtins,io,os
-    from zymecycle import esm,meta,pazy
+    from petzyme import esm,meta,pazy
     def blocked(*a,**k):raise AssertionError('Inference/storage forbidden')
     original=builtins.open;original_io=io.open
     def readonly(opener):
@@ -143,9 +143,9 @@ def test_no_inference_network_or_writes(local,monkeypatch,capsys,caplog):
 
 
 def test_discovery_dispatch_and_no_model_sequence_input(local):
-    from zymecycle.tools import describe_tools,invoke_tool
-    from zymecycle.agent_request import interpret_request,select_tool_catalog
-    from zymecycle.ui_adapter import EXAMPLES
+    from petzyme.tools import describe_tools,invoke_tool
+    from petzyme.agent_request import interpret_request,select_tool_catalog
+    from petzyme.ui_adapter import EXAMPLES
     descriptor=next(t for t in describe_tools()['result'] if t['name']=='triage_protein')
     assert descriptor['output_persistence']=='FORBIDDEN_PAZY_DERIVED'
     assert descriptor['input_schema']['additionalProperties'] is False

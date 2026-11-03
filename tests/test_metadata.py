@@ -8,9 +8,9 @@ from copy import deepcopy
 import httpx
 import pytest
 
-from zymecycle import metadata
-from zymecycle.metadata import get_associated_literature, get_pazy_metadata, search_pazy_pet
-from zymecycle.pazy import PazyClient
+from petzyme import metadata
+from petzyme.metadata import get_associated_literature, get_pazy_metadata, search_pazy_pet
+from petzyme.pazy import PazyClient
 
 
 @pytest.fixture
@@ -24,7 +24,7 @@ def record():
 
 
 def make_client(monkeypatch, handler):
-    monkeypatch.setattr('zymecycle.pazy.time.sleep', lambda seconds: None)
+    monkeypatch.setattr('petzyme.pazy.time.sleep', lambda seconds: None)
     return PazyClient(transport=httpx.MockTransport(handler))
 
 
@@ -68,7 +68,7 @@ def test_request_failure(record, monkeypatch, status):
 
 
 def test_timeout_does_not_break_local_analysis(monkeypatch, tmp_path):
-    from zymecycle.observations import load_nrel, parse_nrel
+    from petzyme.observations import load_nrel, parse_nrel
     def handler(request):
         raise httpx.ReadTimeout('PRIVATE_RECORD', request=request)
     assert search_pazy_pet(client=make_client(monkeypatch, handler))['status'] == 'ERROR'

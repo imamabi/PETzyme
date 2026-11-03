@@ -20,7 +20,7 @@ from pathlib import Path
 
 import httpx
 
-from zymecycle.nrel_units import (
+from petzyme.nrel_units import (
     ActivityRow,
     build_unit_certificate,
     read_activity_workbook,

@@ -2,14 +2,14 @@ from copy import deepcopy
 import json
 import pytest
 from test_esm import SyntheticRuntime
-from zymecycle import esm
-from zymecycle.agent import run_investigation
-from zymecycle.agent_evidence import project_evidence
-from zymecycle.agent_execution import execute_tool_call
-from zymecycle.agent_reporting import format_research_report
-from zymecycle.agent_request import interpret_request, select_tool_catalog
-from zymecycle.agent_types import AgentState
-from zymecycle.tools import describe_tools, invoke_tool
+from petzyme import esm
+from petzyme.agent import run_investigation
+from petzyme.agent_evidence import project_evidence
+from petzyme.agent_execution import execute_tool_call
+from petzyme.agent_reporting import format_research_report
+from petzyme.agent_request import interpret_request, select_tool_catalog
+from petzyme.agent_types import AgentState
+from petzyme.tools import describe_tools, invoke_tool
 from scripts.demo_build05 import QUESTIONS, demonstrate_scenario
 
 
@@ -96,8 +96,8 @@ def test_wrong_reference_type_not_accepted(local_source):
     ({'allow_new_measurements': False}, {'allow_new_measurements': False}, 'SUCCESS'),
 ])
 def test_constraints_cannot_be_invented_even_with_valid_investigation(local_source, configured, supplied, status):
-    from zymecycle.observations import load_nrel, parse_nrel
-    from zymecycle.conditions import investigate_conditions
+    from petzyme.observations import load_nrel, parse_nrel
+    from petzyme.conditions import investigate_conditions
     observations = parse_nrel(load_nrel(local_source)['result'])['result']['observations']
     a = {'temperature_c': 40, 'ph': 6.5, 'pet_form': 'CRYSTALLINE_POWDER'}
     investigation = investigate_conditions(observations, a, {**a, 'temperature_c': 60}, enzyme_identifier='ESM050')['result']

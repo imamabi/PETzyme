@@ -1,9 +1,9 @@
 """Real local source checks; the pretrained representation integration is explicitly opt-in."""
 import os
 import pytest
-from zymecycle.advisor import recommend_next_experiments
-from zymecycle.conditions import investigate_conditions
-from zymecycle.observations import load_nrel, parse_nrel
+from petzyme.advisor import recommend_next_experiments
+from petzyme.conditions import investigate_conditions
+from petzyme.observations import load_nrel, parse_nrel
 from scripts.demo_build05 import demonstrate_scenario
 
 A = {'temperature_c': 40, 'ph': 6.5, 'pet_form': 'CRYSTALLINE_POWDER'}

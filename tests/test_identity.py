@@ -3,8 +3,8 @@ import json
 
 import pytest
 
-from zymecycle.identity import compare_identity, sequence_fingerprint
-from zymecycle.results import outcome
+from petzyme.identity import compare_identity, sequence_fingerprint
+from petzyme.results import outcome
 
 SOURCE = {'name': 'synthetic', 'url': 'https://example.invalid/', 'doi': None,
           'locator': 'synthetic.csv#record=2', 'attribution': 'Synthetic fixture', 'retrieved_at_utc': None}

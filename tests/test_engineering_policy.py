@@ -2,9 +2,9 @@
 
 import pytest
 
-from zymecycle.privacy import TOOL_PRIVACY, outbound_safe, tool_privacy
-from zymecycle.runtime_config import RuntimeLimits, parse_runtime_limits
-from zymecycle.tools import TOOL_FUNCTIONS
+from petzyme.privacy import TOOL_PRIVACY, outbound_safe, tool_privacy
+from petzyme.runtime_config import RuntimeLimits, parse_runtime_limits
+from petzyme.tools import TOOL_FUNCTIONS
 
 
 def test_every_registered_tool_has_one_policy_and_unknown_is_conservative():
@@ -47,13 +47,13 @@ def test_unbounded_or_incoherent_configuration_is_rejected(kwargs):
 
 
 def test_registry_execution_and_projection_use_the_same_authoritative_policy(monkeypatch):
-    from zymecycle.agent_evidence import project_evidence
-    from zymecycle.agent_execution import execute_tool_call
-    from zymecycle.agent_types import AgentState
-    from zymecycle.results import outcome
+    from petzyme.agent_evidence import project_evidence
+    from petzyme.agent_execution import execute_tool_call
+    from petzyme.agent_types import AgentState
+    from petzyme.results import outcome
 
     error = outcome("ERROR", None, [], [], None, "Synthetic failure")
-    monkeypatch.setattr("zymecycle.agent_execution.invoke_tool", lambda *args, **kwargs: error)
+    monkeypatch.setattr("petzyme.agent_execution.invoke_tool", lambda *args, **kwargs: error)
     for index, name in enumerate(TOOL_FUNCTIONS):
         state = AgentState("unused")
         call = {"id": f"x{index}", "function": {"name": name, "arguments": "{}"}}
@@ -80,8 +80,8 @@ def test_registry_execution_and_projection_use_the_same_authoritative_policy(mon
 def test_short_private_sequence_is_blocked_even_in_the_legacy_question_path():
     from test_build10_acceptance import AMBIGUOUS
 
-    from zymecycle.agent_request import interpret_request
-    from zymecycle.privacy import question_contains_private_input
+    from petzyme.agent_request import interpret_request
+    from petzyme.privacy import question_contains_private_input
 
     assert question_contains_private_input("Here is the sequence: " + AMBIGUOUS)
     assert not outbound_safe("Here is the sequence: " + AMBIGUOUS, private_sequences=[AMBIGUOUS])
@@ -104,8 +104,8 @@ def test_import_graph_is_acyclic_including_function_local_imports():
     import ast
     from pathlib import Path
 
-    graph = {p.stem: set() for p in Path("zymecycle").glob("*.py")}
-    for p in Path("zymecycle").glob("*.py"):
+    graph = {p.stem: set() for p in Path("petzyme").glob("*.py")}
+    for p in Path("petzyme").glob("*.py"):
         for node in ast.walk(ast.parse(p.read_text())):
             if isinstance(node, ast.ImportFrom) and node.level == 1 and node.module:
                 dependency = node.module.split(".")[0]
@@ -140,7 +140,7 @@ def test_agent_dialogue_boundary_imports_are_explicit_at_module_level():
     from pathlib import Path
 
     for name in ("agent", "agent_execution", "dialogue", "dialogue_rules", "ui_adapter", "ui_live"):
-        tree = ast.parse(Path("zymecycle", name + ".py").read_text())
+        tree = ast.parse(Path("petzyme", name + ".py").read_text())
         for function in (
             n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
         ):
@@ -150,7 +150,7 @@ def test_agent_dialogue_boundary_imports_are_explicit_at_module_level():
 
 
 def test_source_chemical_terminology_is_not_reclassified_as_private_sequence():
-    from zymecycle.privacy import question_contains_private_input, safe_public_text
+    from petzyme.privacy import question_contains_private_input, safe_public_text
 
     chemical = "hydroxyethylterephthalate"
     assert safe_public_text(chemical) == chemical

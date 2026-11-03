@@ -10,7 +10,7 @@ import httpx
 from streamlit.testing.v1 import AppTest
 from test_dialogue import AMBIGUOUS, QUESTION, DialogueTransport, run_turn
 
-from zymecycle import ui_live
+from petzyme import ui_live
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -30,7 +30,7 @@ def test_actual_ui_callbacks_keep_only_context_and_numeric_cost(monkeypatch):
         )
         return run_turn(payload, scenario)
 
-    monkeypatch.setattr("zymecycle.ui_dialogue.run_keychain_investigation", fake)
+    monkeypatch.setattr("petzyme.ui_dialogue.run_keychain_investigation", fake)
     at = AppTest.from_file(ROOT / "tests/legacy_streamlit_app.py", default_timeout=30).run()
     at.sidebar.radio[0].set_value("Live Muse dialogue").run()
     at.text_area(key="dialogue_text").input(QUESTION)
@@ -69,7 +69,7 @@ def test_actual_ui_callbacks_keep_only_context_and_numeric_cost(monkeypatch):
 
 
 def test_worker_with_synthetic_credential_and_actual_mock_transport(monkeypatch, capsys):
-    from zymecycle.meta import MetaModelClient
+    from petzyme.meta import MetaModelClient
 
     scenario = DialogueTransport(["ESM050", "LCCMC"])
     backend = MetaModelClient(
@@ -78,7 +78,7 @@ def test_worker_with_synthetic_credential_and_actual_mock_transport(monkeypatch,
         max_estimated_cost_usd=10,
     )
     monkeypatch.setenv("MODEL_API_KEY", "synthetic-worker-only")
-    monkeypatch.setattr("zymecycle.meta.MetaModelClient", lambda **kwargs: backend)
+    monkeypatch.setattr("petzyme.meta.MetaModelClient", lambda **kwargs: backend)
     monkeypatch.setattr(sys, "argv", ["ui_live", "--live-worker"])
     payload = {
         "question": "Local identity dialogue",
@@ -95,7 +95,7 @@ def test_worker_with_synthetic_credential_and_actual_mock_transport(monkeypatch,
 
 
 def test_parent_launcher_worker_dialogue_boundary(tmp_path, monkeypatch):
-    for package in ("scripts", "zymecycle"):
+    for package in ("scripts", "petzyme"):
         directory = tmp_path / package
         directory.mkdir()
         (directory / "__init__.py").write_text(
@@ -118,17 +118,17 @@ module._lookup=lambda password:subprocess.CompletedProcess([],0,b'synthetic-chil
 raise SystemExit(module.main())
 """
     )
-    (tmp_path / "zymecycle/ui_live.py").write_text(
+    (tmp_path / "petzyme/ui_live.py").write_text(
         common
         + """
 import httpx
 from tests.test_dialogue import DialogueTransport
-from zymecycle import ui_adapter,meta
+from petzyme import ui_adapter,meta
 assert os.environ.get('MODEL_API_KEY')=='synthetic-child-only'
 scenario=DialogueTransport(['ESM050','LCCMC'])
 Original=meta.MetaModelClient
 meta.MetaModelClient=lambda **kwargs:Original(transport=httpx.MockTransport(scenario.respond),completion_tokens=kwargs['completion_tokens'],max_estimated_cost_usd=kwargs.get('max_estimated_cost_usd'))
-spec=importlib.util.spec_from_file_location('zymecycle._real_ui_live',ROOT/'zymecycle/ui_live.py')
+spec=importlib.util.spec_from_file_location('petzyme._real_ui_live',ROOT/'petzyme/ui_live.py')
 module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
 raise SystemExit(module.worker_main())
 """
@@ -147,7 +147,7 @@ raise SystemExit(module.worker_main())
         return popen(command, **kwargs)
 
     monkeypatch.setattr(ui_live.subprocess, "Popen", observe)
-    from zymecycle.runtime_config import RuntimeLimits
+    from petzyme.runtime_config import RuntimeLimits
 
     limits = RuntimeLimits(turn_models=3, turn_tools=4, session_models=12, session_tools=16)
     result = ui_live.run_keychain_investigation(
@@ -177,7 +177,7 @@ def test_incomplete_dialogue_panel_is_honest_and_does_not_label_mock_http_as_rea
     def fake(question, **kwargs):
         return run_turn(kwargs["dialogue_input"], DialogueTransport(["ESM050"], bad="ids"))
 
-    monkeypatch.setattr("zymecycle.ui_dialogue.run_keychain_investigation", fake)
+    monkeypatch.setattr("petzyme.ui_dialogue.run_keychain_investigation", fake)
     at = AppTest.from_file(ROOT / "tests/legacy_streamlit_app.py", default_timeout=30).run()
     at.sidebar.radio[0].set_value("Live Muse dialogue").run()
     at.text_area(key="dialogue_text").input(QUESTION)
@@ -195,7 +195,7 @@ def test_legacy_context_requires_explicit_reset_without_faking_usage_or_paid_cal
     def blocked(*args, **kwargs):
         raise AssertionError("Reset must not request paid inference")
 
-    monkeypatch.setattr("zymecycle.ui_dialogue.run_keychain_investigation", blocked)
+    monkeypatch.setattr("petzyme.ui_dialogue.run_keychain_investigation", blocked)
     at = AppTest.from_file(ROOT / "tests/legacy_streamlit_app.py", default_timeout=30).run()
     at.sidebar.radio[0].set_value("Live Muse dialogue").run()
     legacy = {"requested_labels": ["ESM050", "LCCMC"], "model_attempts": 2}

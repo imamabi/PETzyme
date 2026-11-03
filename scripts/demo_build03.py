@@ -7,11 +7,11 @@ from __future__ import annotations
 import argparse
 import json
 import httpx
-from zymecycle.agent import run_investigation
-from zymecycle.agent_types import ResearchReport
-from zymecycle.contracts import ToolResult
-from zymecycle.agent_reporting import format_research_report
-from zymecycle.meta import MetaModelClient
+from petzyme.agent import run_investigation
+from petzyme.agent_types import ResearchReport
+from petzyme.contracts import ToolResult
+from petzyme.agent_reporting import format_research_report
+from petzyme.meta import MetaModelClient
 
 QUESTIONS = {
     'A': 'For crystalline PET powder at 40°C and pH 6.5, which enzymes have the highest recorded NREL responses, and how reliable is the evidence?',

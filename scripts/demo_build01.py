@@ -5,9 +5,9 @@ import argparse
 import json
 from datetime import datetime, timezone
 
-from zymecycle.contracts import JSONValue, ToolResult
-from zymecycle.metadata import get_associated_literature, get_pazy_metadata, search_pazy_pet
-from zymecycle.observations import load_nrel, parse_nrel, summarize_condition
+from petzyme.contracts import JSONValue, ToolResult
+from petzyme.metadata import get_associated_literature, get_pazy_metadata, search_pazy_pet
+from petzyme.observations import load_nrel, parse_nrel, summarize_condition
 
 
 def nrel_examples(csv_path: str) -> dict[str, ToolResult]:

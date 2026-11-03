@@ -5,13 +5,13 @@ from dataclasses import asdict
 
 import pytest
 
-from zymecycle.experimental_window import parse_experimental_window
-from zymecycle.research_session import append_research_turn, new_research_session
+from petzyme.experimental_window import parse_experimental_window
+from petzyme.research_session import append_research_turn, new_research_session
 
 
 def test_transient_cohort_replay_queries_original_subjects_at_new_temperature():
-    from zymecycle.pet_evidence import investigate_pet_evidence
-    from zymecycle.research_session import revalidate_cohort_queries
+    from petzyme.pet_evidence import investigate_pet_evidence
+    from petzyme.research_session import revalidate_cohort_queries
 
     queries = revalidate_cohort_queries(
         "What are the five enzymes with the best recorded PET-degradation responses?",
@@ -23,7 +23,7 @@ def test_transient_cohort_replay_queries_original_subjects_at_new_temperature():
 
 
 def test_explicit_new_comparison_filter_does_not_overwrite_previous_group():
-    from zymecycle.research_session import revalidate_cohort_queries
+    from petzyme.research_session import revalidate_cohort_queries
 
     origin = 'What are the five enzymes with the best recorded PET-degradation responses?'
     current = 'Compare those at 60C with the previous group.'
@@ -42,7 +42,7 @@ def test_public_turns_are_ordered_and_new_session_resets_history():
 
 
 def test_research_session_and_context_have_no_fifty_turn_quota():
-    from zymecycle.agent_request import contextualize_request
+    from petzyme.agent_request import contextualize_request
 
     session = new_research_session()
     turns = ['Investigate ESM050 PET evidence.'] + ['What about 40C?'] * 55
@@ -61,7 +61,7 @@ def test_sequence_is_not_retained_in_session():
 
 
 def test_credentials_and_embedded_lowercase_sequences_do_not_enter_context():
-    from zymecycle.ui_adapter import dispatch_research_turn, run_offline
+    from petzyme.ui_adapter import dispatch_research_turn, run_offline
 
     session = new_research_session()
     secret = "API key: example-secret-value"
@@ -79,7 +79,7 @@ def test_ph_or_lower_is_a_bound_not_an_exact_setpoint():
 
 
 def test_named_context_keeps_historical_conditions_separate_from_lab_limits():
-    from zymecycle.agent_request import contextualize_request
+    from petzyme.agent_request import contextualize_request
 
     prior = ["Investigate ESM050 PET evidence.", "My equipment supports only 40C and pH <= 7."]
     historical = contextualize_request("Which were tested at 60C?", prior)
@@ -91,7 +91,7 @@ def test_named_context_keeps_historical_conditions_separate_from_lab_limits():
 
 
 def test_real_discovery_and_followups_requery_without_retaining_records():
-    from zymecycle.ui_adapter import dispatch_research_turn, run_offline
+    from petzyme.ui_adapter import dispatch_research_turn, run_offline
 
     session = new_research_session()
     for index, question in enumerate((
@@ -109,7 +109,7 @@ def test_real_discovery_and_followups_requery_without_retaining_records():
 
 
 def test_mismatched_referents_are_not_silently_replaced():
-    from zymecycle.ui_adapter import dispatch_research_turn, run_offline
+    from petzyme.ui_adapter import dispatch_research_turn, run_offline
 
     session, result, _ = dispatch_research_turn(
         new_research_session(), "Which PET hydrolases have shown high experimental responses?", run_offline
@@ -126,7 +126,7 @@ def test_mismatched_referents_are_not_silently_replaced():
 
 
 def test_four_turn_historical_query_does_not_inherit_equipment_constraints():
-    from zymecycle.ui_adapter import dispatch_research_turn, run_offline
+    from petzyme.ui_adapter import dispatch_research_turn, run_offline
 
     session = new_research_session()
     session, first, _ = dispatch_research_turn(session, "What are the five enzymes with the best recorded PET-degradation responses?", run_offline)
@@ -145,7 +145,7 @@ def test_four_turn_historical_query_does_not_inherit_equipment_constraints():
 
 
 def test_cohort_followups_send_only_current_question_to_worker():
-    from zymecycle.ui_adapter import dispatch_research_turn, run_offline
+    from petzyme.ui_adapter import dispatch_research_turn, run_offline
 
     session, first, _ = dispatch_research_turn(new_research_session(), "What are the five enzymes with the best recorded PET-degradation responses?", run_offline)
     assert first["result"]
@@ -182,7 +182,7 @@ def test_cohort_followups_send_only_current_question_to_worker():
 
 
 def test_self_contained_their_question_is_not_a_missing_cohort_reference():
-    from zymecycle.ui_adapter import dispatch_research_turn
+    from petzyme.ui_adapter import dispatch_research_turn
 
     question = 'Find PET-associated enzymes in PAZy and show their biological context and supporting publications.'
     seen = []
@@ -195,7 +195,7 @@ def test_self_contained_their_question_is_not_a_missing_cohort_reference():
 
 
 def test_cohort_no_match_and_ambiguous_reference_do_not_fabricate_results():
-    from zymecycle.ui_adapter import dispatch_research_turn, run_offline
+    from petzyme.ui_adapter import dispatch_research_turn, run_offline
 
     session = new_research_session()
     session, no_context, _ = dispatch_research_turn(session, "Which of those were tested at 99C?", run_offline)
@@ -213,7 +213,7 @@ def test_cohort_no_match_and_ambiguous_reference_do_not_fabricate_results():
 
 
 def test_two_historical_groups_are_replayed_separately_without_reranking():
-    from zymecycle.ui_adapter import dispatch_research_turn, run_offline
+    from petzyme.ui_adapter import dispatch_research_turn, run_offline
 
     session = new_research_session()
     for question in (
@@ -242,7 +242,7 @@ def test_two_historical_groups_are_replayed_separately_without_reranking():
 
 
 def test_group_comparison_does_not_replace_earlier_source_scope():
-    from zymecycle.ui_adapter import dispatch_research_turn, run_offline
+    from petzyme.ui_adapter import dispatch_research_turn, run_offline
 
     session = new_research_session()
     for question in (
@@ -263,7 +263,7 @@ def test_group_comparison_does_not_replace_earlier_source_scope():
 
 
 def test_ambiguous_group_comparison_does_not_substitute_a_ranking():
-    from zymecycle.ui_adapter import dispatch_research_turn, run_offline
+    from petzyme.ui_adapter import dispatch_research_turn, run_offline
 
     session, _, _ = dispatch_research_turn(new_research_session(), "What are the five enzymes with the best recorded PET-degradation responses?", run_offline)
     session, result, _ = dispatch_research_turn(session, "Which of those five were tested at 60C?", run_offline)
@@ -274,7 +274,7 @@ def test_ambiguous_group_comparison_does_not_substitute_a_ranking():
 
 
 def test_cohort_condition_after_planning_requires_historical_or_future_intent():
-    from zymecycle.ui_adapter import dispatch_research_turn, run_offline
+    from petzyme.ui_adapter import dispatch_research_turn, run_offline
 
     session, _, _ = dispatch_research_turn(new_research_session(), "What are the five enzymes with the best recorded PET-degradation responses?", run_offline)
     session, plan, _ = dispatch_research_turn(session, "What should I test next at 40C and pH 7 or lower?", run_offline)
@@ -285,7 +285,7 @@ def test_cohort_condition_after_planning_requires_historical_or_future_intent():
 
 
 def test_cohort_provider_payload_is_bounded_and_excludes_private_fields():
-    from zymecycle.agent import run_investigation
+    from petzyme.agent import run_investigation
 
     class Backend:
         mode = "MOCK_META"
@@ -307,7 +307,7 @@ def test_cohort_provider_payload_is_bounded_and_excludes_private_fields():
 
 
 def test_group_comparison_provider_payload_preserves_privacy_and_attempt_counts():
-    from zymecycle.agent import run_investigation
+    from petzyme.agent import run_investigation
 
     class Backend:
         mode = 'MOCK_META'
@@ -328,8 +328,8 @@ def test_group_comparison_provider_payload_preserves_privacy_and_attempt_counts(
 
 
 def test_named_followup_sends_current_question_and_separate_validated_context():
-    from zymecycle.agent import run_investigation
-    from zymecycle.ui_adapter import OfflineWorkflow
+    from petzyme.agent import run_investigation
+    from petzyme.ui_adapter import OfflineWorkflow
 
     original = "Investigate ESM050 PET evidence."
     current = "What about 60C?"
@@ -353,7 +353,7 @@ def test_named_followup_sends_current_question_and_separate_validated_context():
     ("Compare kcat/KM at 60C.", "SCIENTIFIC_SCOPE_QUANTITY_MISMATCH"),
 ])
 def test_named_context_does_not_override_explicit_scientific_mismatches(question, issue):
-    from zymecycle.ui_adapter import run_offline
+    from petzyme.ui_adapter import run_offline
 
     result = run_offline(question, context_turns=["Investigate ESM050 PET recorded responses."])
     assert result["result"] and issue in result["result"]["scientific_scope"]["issues"]
@@ -364,7 +364,7 @@ def test_unified_app_three_turns_and_reset_without_paid_inference(monkeypatch):
 
     from streamlit.testing.v1 import AppTest
 
-    from zymecycle import ui_live
+    from petzyme import ui_live
 
     def forbidden(*args, **kwargs):
         raise AssertionError("No provider launch was authorized")
@@ -378,7 +378,7 @@ def test_unified_app_three_turns_and_reset_without_paid_inference(monkeypatch):
         "What should I test next at pH 7 or lower?",
     ):
         app.text_area(key="unified_question").input(question)
-        app.button(key="FormSubmitter:ask_zymecycle-Ask PETzyme").click().run()
+        app.button(key="FormSubmitter:ask_petzyme-Ask PETzyme").click().run()
         assert not app.exception and not app.error
         assert app.table
     assert any("Suggested next step" in item.value for item in app.markdown)
@@ -389,7 +389,7 @@ def test_unified_app_three_turns_and_reset_without_paid_inference(monkeypatch):
 
 
 def test_unknown_identity_and_sequence_are_handled_without_private_retention():
-    from zymecycle.ui_adapter import dispatch_research_turn, run_offline
+    from petzyme.ui_adapter import dispatch_research_turn, run_offline
 
     session, result, _ = dispatch_research_turn(new_research_session(), "Investigate LCCMC.", run_offline)
     assert result["status"] == "NO_DATA" and session.pending_label == "LCCMC"
@@ -405,7 +405,7 @@ def test_unknown_identity_and_sequence_are_handled_without_private_retention():
 
 
 def test_new_named_investigation_can_follow_unresolved_private_sequence():
-    from zymecycle.ui_adapter import dispatch_research_turn, run_offline
+    from petzyme.ui_adapter import dispatch_research_turn, run_offline
 
     session, result, _ = dispatch_research_turn(new_research_session(), "ALINPRGRSTTPIATRVQRQRPGLIKJKKM", run_offline)
     assert result["result"]["identity_status"] == "UNRESOLVED"
@@ -414,7 +414,7 @@ def test_new_named_investigation_can_follow_unresolved_private_sequence():
 
 
 def test_named_enzyme_continuation_requeries_without_persisting_source_data():
-    from zymecycle.ui_adapter import dispatch_research_turn, run_offline
+    from petzyme.ui_adapter import dispatch_research_turn, run_offline
 
     session = new_research_session()
     for q in ("Investigate ESM050.", "What PAZy evidence is available?", "I can only run at 40C."):
@@ -425,7 +425,7 @@ def test_named_enzyme_continuation_requeries_without_persisting_source_data():
 
 
 def test_source_only_and_new_objective_do_not_silently_inherit_old_limits():
-    from zymecycle.ui_adapter import dispatch_research_turn, run_offline
+    from petzyme.ui_adapter import dispatch_research_turn, run_offline
 
     session = new_research_session()
     for q in ("Investigate ESM050.", "Use PAZy only for the evidence.", "I can only run at 40C."):
@@ -439,7 +439,7 @@ def test_source_only_and_new_objective_do_not_silently_inherit_old_limits():
 
 
 def test_explicit_source_change_overrides_prior_source_preference():
-    from zymecycle.ui_adapter import dispatch_research_turn, run_offline
+    from petzyme.ui_adapter import dispatch_research_turn, run_offline
 
     session, first, _ = dispatch_research_turn(
         new_research_session(), "Investigate ESM050 using NREL only.", run_offline
@@ -455,7 +455,7 @@ def test_explicit_source_change_overrides_prior_source_preference():
 
 
 def test_offline_source_switching_retrieves_grounded_evidence_and_keeps_planning_partial():
-    from zymecycle.ui_adapter import dispatch_research_turn, run_offline
+    from petzyme.ui_adapter import dispatch_research_turn, run_offline
 
     session = new_research_session()
     questions = (
@@ -485,7 +485,7 @@ def test_offline_source_switching_retrieves_grounded_evidence_and_keeps_planning
 
 
 def test_nrel_single_temperature_followup_does_not_require_two_condition_comparison():
-    from zymecycle.ui_adapter import dispatch_research_turn, run_offline
+    from petzyme.ui_adapter import dispatch_research_turn, run_offline
 
     session = new_research_session()
     for question in ("Investigate ESM050 — what's reported, and what should I test next?",
@@ -500,7 +500,7 @@ def test_nrel_single_temperature_followup_does_not_require_two_condition_compari
 
 
 def test_named_followups_do_not_join_prior_user_turns_into_current_question():
-    from zymecycle.ui_adapter import dispatch_research_turn, run_offline
+    from petzyme.ui_adapter import dispatch_research_turn, run_offline
 
     session, first, _ = dispatch_research_turn(new_research_session(), "Investigate ESM050 PET evidence.", run_offline)
     assert first["result"]
@@ -516,7 +516,7 @@ def test_named_followups_do_not_join_prior_user_turns_into_current_question():
 
 
 def test_named_context_retains_separately_stated_equipment_constraints():
-    from zymecycle.ui_adapter import dispatch_research_turn, run_offline
+    from petzyme.ui_adapter import dispatch_research_turn, run_offline
 
     session, result, _ = dispatch_research_turn(new_research_session(), "Investigate ESM050 PET evidence.", run_offline)
     assert result["result"]
@@ -527,7 +527,7 @@ def test_named_context_retains_separately_stated_equipment_constraints():
 
 
 def test_custom_runner_is_never_silently_replaced_for_a_followup():
-    from zymecycle.ui_adapter import dispatch_research_turn, run_offline
+    from petzyme.ui_adapter import dispatch_research_turn, run_offline
 
     session, first, _ = dispatch_research_turn(new_research_session(), "Investigate ESM050 PET evidence.", run_offline)
     assert first["result"]
@@ -540,7 +540,7 @@ def test_custom_runner_is_never_silently_replaced_for_a_followup():
 
 
 def test_two_enzyme_next_step_requests_missing_constraints_then_focus_offline():
-    from zymecycle.ui_adapter import dispatch_research_turn, run_offline
+    from petzyme.ui_adapter import dispatch_research_turn, run_offline
 
     session = new_research_session()
     for q in ("Investigate ESM050.", "I can only run at 40C.", "Compare with LCC-ICCG."):
@@ -557,7 +557,7 @@ def test_two_enzyme_next_step_requests_missing_constraints_then_focus_offline():
 
 
 def test_new_objective_can_leave_pending_focus_without_old_constraints():
-    from zymecycle.ui_adapter import dispatch_research_turn, run_offline
+    from petzyme.ui_adapter import dispatch_research_turn, run_offline
 
     session, result, _ = dispatch_research_turn(
         new_research_session(),
@@ -578,15 +578,15 @@ def test_unified_app_withholds_credentials_without_session_storage():
     app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "streamlit_app.py"), default_timeout=30).run()
     secret = "API key: example-secret-value"
     app.text_area(key="unified_question").input(secret)
-    app.button(key="FormSubmitter:ask_zymecycle-Ask PETzyme").click().run()
+    app.button(key="FormSubmitter:ask_petzyme-Ask PETzyme").click().run()
     assert not app.exception and app.error
     assert secret not in str(app.session_state["research_session"])
     assert app.text_area(key="unified_question").value == ""
 
 
 def test_local_sequence_question_routes_to_existing_bounded_esm_instrument():
-    from zymecycle.agent_request import interpret_request
-    from zymecycle.ui_adapter import local_research_plan
+    from petzyme.agent_request import interpret_request
+    from petzyme.ui_adapter import local_research_plan
 
     plan = local_research_plan(interpret_request("Use ESM-2 to find proteins similar to ESM050."))
     assert [step[0] for step in plan] == ["load_nrel", "find_similar_nrel_proteins"]
@@ -601,12 +601,12 @@ def test_unified_app_sequence_triage_is_transient():
 
     app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "streamlit_app.py"), default_timeout=30).run()
     app.text_area(key="unified_question").input("Investigate LCCMC.")
-    app.button(key="FormSubmitter:ask_zymecycle-Ask PETzyme").click().run()
+    app.button(key="FormSubmitter:ask_petzyme-Ask PETzyme").click().run()
     assert not app.exception and app.session_state["research_session"].pending_label == "LCCMC"
     assert any("sequence" in item.value for item in app.info)
     sequence = "ALINPRGRSTTPIATRVQRQRPGLIKJKKM"
     app.text_area(key="unified_question").input(sequence)
-    app.button(key="FormSubmitter:ask_zymecycle-Ask PETzyme").click().run()
+    app.button(key="FormSubmitter:ask_petzyme-Ask PETzyme").click().run()
     assert not app.exception and any("UNRESOLVED" in item.value and "J" in item.value for item in app.info)
     assert sequence not in json.dumps(asdict(app.session_state["research_session"]))
     assert app.text_area(key="unified_question").value == ""
@@ -627,17 +627,17 @@ def test_unified_app_adaptive_dialogue_uses_retained_context_with_mock_transport
         calls.append(payload)
         return run(payload, PlanningTransport(continuation=payload["context"] is not None))
 
-    monkeypatch.setattr("zymecycle.ui_live.run_keychain_investigation", fake)
+    monkeypatch.setattr("petzyme.ui_live.run_keychain_investigation", fake)
     monkeypatch.delenv("PETZYME_OFFLINE", raising=False)
     monkeypatch.setattr("scripts.launch_meta.keychain_item_present", lambda: True)
     app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "streamlit_app.py"), default_timeout=60).run()
     assert not app.checkbox
     app.text_area(key="unified_question").input(QUESTION)
-    app.button(key="FormSubmitter:ask_zymecycle-Ask PETzyme").click().run(timeout=60)
+    app.button(key="FormSubmitter:ask_petzyme-Ask PETzyme").click().run(timeout=60)
     assert not app.exception and len(calls) == 1 and calls[0]["context"] is None
     assert app.session_state["research_session"].dialogue_context is not None
     app.text_area(key="unified_question").input("I can only run experiments at 40C now.")
-    app.button(key="FormSubmitter:ask_zymecycle-Ask PETzyme").click().run(timeout=60)
+    app.button(key="FormSubmitter:ask_petzyme-Ask PETzyme").click().run(timeout=60)
     assert not app.exception and len(calls) == 2 and calls[1]["context"] is not None
     ctx = app.session_state["research_session"].dialogue_context
     assert ctx["temperatures_c"] == [40] and ctx["maximum_ph"] == 7
@@ -649,7 +649,7 @@ def test_automatic_muse_failure_displays_truthful_local_fallback(monkeypatch):
 
     from streamlit.testing.v1 import AppTest
 
-    from zymecycle.results import outcome
+    from petzyme.results import outcome
 
     calls = []
     def failing_live(question, **kwargs):
@@ -658,10 +658,10 @@ def test_automatic_muse_failure_displays_truthful_local_fallback(monkeypatch):
 
     monkeypatch.delenv('PETZYME_OFFLINE', raising=False)
     monkeypatch.setattr('scripts.launch_meta.keychain_item_present', lambda: True)
-    monkeypatch.setattr('zymecycle.ui_live.run_keychain_investigation', failing_live)
+    monkeypatch.setattr('petzyme.ui_live.run_keychain_investigation', failing_live)
     app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / 'streamlit_app.py'), default_timeout=60).run()
     app.text_area(key='unified_question').input('Investigate ESM050 PET experimental evidence.')
-    app.button(key='FormSubmitter:ask_zymecycle-Ask PETzyme').click().run(timeout=60)
+    app.button(key='FormSubmitter:ask_petzyme-Ask PETzyme').click().run(timeout=60)
     assert not app.exception and len(calls) == 1
     assert any('deterministic' in item.value.lower() for item in app.caption)
     app.run(timeout=60)

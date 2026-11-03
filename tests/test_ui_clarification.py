@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 import pytest
 from streamlit.testing.v1 import AppTest
-from zymecycle.observations import load_nrel, select_nrel_protein
+from petzyme.observations import load_nrel, select_nrel_protein
 from test_clarification import QUESTION, assert_context
 
 APP = Path(__file__).resolve().parents[1]/'tests/legacy_streamlit_app.py'
@@ -12,10 +12,10 @@ APP = Path(__file__).resolve().parents[1]/'tests/legacy_streamlit_app.py'
 @pytest.fixture
 def app(monkeypatch):
     def blocked(*a,**k):pytest.fail('Clarification must not invoke a provider, Keychain or model')
-    monkeypatch.setattr('zymecycle.meta.MetaModelClient.complete',blocked)
-    monkeypatch.setattr('zymecycle.ui_live.subprocess.Popen',blocked)
-    monkeypatch.setattr('zymecycle.esm.load_esm2_runtime',blocked)
-    monkeypatch.setattr('zymecycle.pazy.PazyClient._get',blocked)
+    monkeypatch.setattr('petzyme.meta.MetaModelClient.complete',blocked)
+    monkeypatch.setattr('petzyme.ui_live.subprocess.Popen',blocked)
+    monkeypatch.setattr('petzyme.esm.load_esm2_runtime',blocked)
+    monkeypatch.setattr('petzyme.pazy.PazyClient._get',blocked)
     return AppTest.from_file(APP,default_timeout=30).run()
 
 

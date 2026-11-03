@@ -1,7 +1,7 @@
 """Synthetic sequence preparation fixtures; no real external records."""
 import pytest
-from zymecycle.protein_sequences import MAX_RESIDUES, prepare_protein_sequence
-from zymecycle.observations import load_nrel, select_nrel_protein
+from petzyme.protein_sequences import MAX_RESIDUES, prepare_protein_sequence
+from petzyme.observations import load_nrel, select_nrel_protein
 
 
 def test_normalize_and_fingerprint():

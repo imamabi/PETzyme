@@ -5,16 +5,16 @@ import argparse
 import json
 from datetime import datetime, timezone
 
-from zymecycle.comparability import check_comparability
-from zymecycle.conditions import investigate_conditions
-from zymecycle.contracts import JSONValue, NrelTable, ToolResult
-from zymecycle.evidence import assess_evidence
-from zymecycle.gaps import identify_evidence_gaps
-from zymecycle.identity import compare_identity, sequence_fingerprint
-from zymecycle.metadata import get_associated_literature, get_pazy_metadata, search_pazy_pet
-from zymecycle.observations import filter_observations, load_nrel, parse_nrel, select_nrel_protein
-from zymecycle.pazy import PazyClient
-from zymecycle.results import outcome
+from petzyme.comparability import check_comparability
+from petzyme.conditions import investigate_conditions
+from petzyme.contracts import JSONValue, NrelTable, ToolResult
+from petzyme.evidence import assess_evidence
+from petzyme.gaps import identify_evidence_gaps
+from petzyme.identity import compare_identity, sequence_fingerprint
+from petzyme.metadata import get_associated_literature, get_pazy_metadata, search_pazy_pet
+from petzyme.observations import filter_observations, load_nrel, parse_nrel, select_nrel_protein
+from petzyme.pazy import PazyClient
+from petzyme.results import outcome
 
 A = {'temperature_c': 40, 'ph': 6.5, 'pet_form': 'CRYSTALLINE_POWDER'}
 B = {**A, 'temperature_c': 60}

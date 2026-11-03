@@ -5,10 +5,10 @@ import argparse
 import json
 from collections import Counter
 
-from zymecycle.activity_audit import audit_pazy_pet_assays
-from zymecycle.activity_snapshot import load_pazy_activity_snapshot
-from zymecycle.cross_overlap import candidate_protein_pairs, identify_cross_source_overlap, verify_snapshot_identities
-from zymecycle.observations import load_nrel
+from petzyme.activity_audit import audit_pazy_pet_assays
+from petzyme.activity_snapshot import load_pazy_activity_snapshot
+from petzyme.cross_overlap import candidate_protein_pairs, identify_cross_source_overlap, verify_snapshot_identities
+from petzyme.observations import load_nrel
 
 
 def main() -> None:
@@ -28,7 +28,7 @@ def main() -> None:
     verification_status = 'NOT_REQUESTED'
     if args.verify_live:
         import httpx
-        from zymecycle.pazy import PazyClient
+        from petzyme.pazy import PazyClient
         class CountTransport(httpx.BaseTransport):
             def handle_request(self, request: httpx.Request) -> httpx.Response:
                 """Flow: Receives httpx.Request during PazyClient._get(); returns HTTPTransport.handle_request() httpx.Response for that lookup, retaining only numeric counts."""

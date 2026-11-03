@@ -4,13 +4,13 @@ import subprocess
 import sys
 import pytest
 import httpx
-from zymecycle import esm
-from zymecycle.agent import _outbound_safe, run_investigation
-from zymecycle.agent_types import AgentState
-from zymecycle.agent_request import interpret_request, select_tool_catalog
-from zymecycle.agent_reporting import format_research_report
-from zymecycle.meta import MetaModelClient
-from zymecycle.tools import invoke_tool, describe_tools
+from petzyme import esm
+from petzyme.agent import _outbound_safe, run_investigation
+from petzyme.agent_types import AgentState
+from petzyme.agent_request import interpret_request, select_tool_catalog
+from petzyme.agent_reporting import format_research_report
+from petzyme.meta import MetaModelClient
+from petzyme.tools import invoke_tool, describe_tools
 from test_esm import SyntheticRuntime
 
 QUESTION = 'Find proteins with ESM-2 representations similar to LCC-ICCG.'
@@ -148,8 +148,8 @@ class BlockProteinImports:
 sys.meta_path.insert(0,BlockProteinImports())
 def blocked(*args, **kwargs): raise AssertionError('Network access forbidden')
 socket.socket.connect=blocked
-from zymecycle.tools import describe_tools
-from zymecycle.observations import load_nrel
+from petzyme.tools import describe_tools
+from petzyme.observations import load_nrel
 assert len(describe_tools()['result'])==19
 assert load_nrel()['status']=='SUCCESS'
 assert 'torch' not in sys.modules and 'transformers' not in sys.modules

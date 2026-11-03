@@ -4,10 +4,10 @@ import json
 
 import pytest
 
-from zymecycle.agent import run_investigation
-from zymecycle.agent_reporting import format_research_report
-from zymecycle.agent_request import interpret_request
-from zymecycle.scientific_scope import assess_scientific_scope, interpret_scientific_scope
+from petzyme.agent import run_investigation
+from petzyme.agent_reporting import format_research_report
+from petzyme.agent_request import interpret_request
+from petzyme.scientific_scope import assess_scientific_scope, interpret_scientific_scope
 
 POLYPROPYLENE = "Compare ESM050 on polypropylene powder at 40C and 60C, pH 6.5."
 KINETIC = "Compare kcat/KM of ESM050 on PET powder at 40C and 60C, pH 6.5."
@@ -218,7 +218,7 @@ def test_scope_assessment_compares_actual_material_not_just_question_keywords():
 
 
 def test_rewritten_request_scope_cannot_override_original_question(monkeypatch):
-    import zymecycle.agent as agent
+    import petzyme.agent as agent
 
     real = agent.interpret_request
 
@@ -235,10 +235,10 @@ def test_rewritten_request_scope_cannot_override_original_question(monkeypatch):
 
 @pytest.mark.parametrize("question", [POLYPROPYLENE, KINETIC])
 def test_validator_alone_rejects_authentic_ids_without_scope_warning_injection(question):
-    from zymecycle.agent_execution import execute_tool_call
-    from zymecycle.agent_reporting import validate_investigation
-    from zymecycle.agent_request import select_tool_catalog
-    from zymecycle.agent_types import AgentState
+    from petzyme.agent_execution import execute_tool_call
+    from petzyme.agent_reporting import validate_investigation
+    from petzyme.agent_request import select_tool_catalog
+    from petzyme.agent_types import AgentState
 
     request = interpret_request(question)
     state = AgentState("data/nrel/label_data.csv")
@@ -272,12 +272,12 @@ def test_method_question_has_conditional_requirements_in_actual_agent_report():
 def test_dialogue_worker_preflight_exposes_scope_reason_without_keychain_or_process(
     monkeypatch, question
 ):
-    from zymecycle.ui_live import run_keychain_investigation
+    from petzyme.ui_live import run_keychain_investigation
 
     def forbidden(*args, **kwargs):
         raise AssertionError("Invalid dialogue scope must not launch a child")
 
-    monkeypatch.setattr("zymecycle.ui_live.subprocess.Popen", forbidden)
+    monkeypatch.setattr("petzyme.ui_live.subprocess.Popen", forbidden)
     result = run_keychain_investigation(
         "Local identity dialogue",
         authorized=True,
@@ -306,8 +306,8 @@ def test_model_cannot_hide_scope_warning_by_selecting_only_source_facts(question
 
 @pytest.mark.parametrize("question", [POLYPROPYLENE, KINETIC])
 def test_dialogue_does_not_erase_original_unsupported_scope(question):
-    from zymecycle.dialogue import prepare_dialogue_turn
-    from zymecycle.scientific_scope import ScientificScopeError
+    from petzyme.dialogue import prepare_dialogue_turn
+    from petzyme.scientific_scope import ScientificScopeError
 
     text = (
         "Should I use ESM050 or LCC-ICCG? My equipment supports 40C and 60C, but I cannot exceed pH 7. "
@@ -322,7 +322,7 @@ def test_dialogue_does_not_erase_original_unsupported_scope(question):
 def test_rendered_negative_scope_is_prominent_and_keeps_real_values():
     from streamlit.testing.v1 import AppTest
 
-    from zymecycle.ui_adapter import investigate_with_backend
+    from petzyme.ui_adapter import investigate_with_backend
 
     view = investigate_with_backend(POLYPROPYLENE, AllPetFacts())["result"]
 

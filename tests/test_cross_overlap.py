@@ -8,10 +8,10 @@ import httpx
 import pytest
 
 from test_activity_snapshot import records, load
-from zymecycle.cross_overlap import candidate_protein_pairs, identify_cross_source_overlap, verify_snapshot_identities
-from zymecycle.cross_comparability import describe_nrel_observation, describe_pazy_assay
-from zymecycle.observations import load_nrel, parse_nrel
-from zymecycle.pazy import PazyClient
+from petzyme.cross_overlap import candidate_protein_pairs, identify_cross_source_overlap, verify_snapshot_identities
+from petzyme.cross_comparability import describe_nrel_observation, describe_pazy_assay
+from petzyme.observations import load_nrel, parse_nrel
+from petzyme.pazy import PazyClient
 
 
 @pytest.fixture
@@ -67,7 +67,7 @@ def test_live_failure_no_fallback_or_followup(inputs):
 
 def test_source_values_and_metadata_are_not_filled(inputs):
     snapshot,nrel=inputs
-    from zymecycle.activity_snapshot import iter_assays
+    from petzyme.activity_snapshot import iter_assays
     reference=next(iter_assays(snapshot));before=deepcopy(reference)
     descriptor=describe_pazy_assay(reference)
     assert descriptor['fields']['crystallinity_percent'] is None

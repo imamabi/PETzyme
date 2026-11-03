@@ -7,11 +7,11 @@ from pathlib import Path
 import httpx
 import pytest
 from streamlit.testing.v1 import AppTest
-from zymecycle import agent, esm, ui_adapter
-from zymecycle.agent_evidence import model_evidence
-from zymecycle.agent_reporting import format_research_report
-from zymecycle.meta import MetaModelClient, MODEL
-from zymecycle.ui_adapter import EXAMPLES, OfflineWorkflow, investigate_with_backend
+from petzyme import agent, esm, ui_adapter
+from petzyme.agent_evidence import model_evidence
+from petzyme.agent_reporting import format_research_report
+from petzyme.meta import MetaModelClient, MODEL
+from petzyme.ui_adapter import EXAMPLES, OfflineWorkflow, investigate_with_backend
 from test_communication import draft_from_facts
 from test_esm import SyntheticRuntime
 
@@ -145,8 +145,8 @@ def test_apptest_verified_display_or_deterministic_fallback_transient_and_no_rer
     def local_result(*args, **kwargs): calls.append(1); return deepcopy(result)
     def blocked(*args, **kwargs): pytest.fail('AppTest cannot call the provider or Keychain')
     monkeypatch.setattr(ui_adapter, 'run_offline', local_result)
-    monkeypatch.setattr('zymecycle.ui_live.subprocess.Popen', blocked)
-    monkeypatch.setattr('zymecycle.meta.MetaModelClient.complete', blocked)
+    monkeypatch.setattr('petzyme.ui_live.subprocess.Popen', blocked)
+    monkeypatch.setattr('petzyme.meta.MetaModelClient.complete', blocked)
     at = AppTest.from_file(APP,default_timeout=30).run()
     at.button(key='example_7').click().run()
     at.button(key='investigate').click().run()

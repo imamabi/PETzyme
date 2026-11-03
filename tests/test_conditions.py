@@ -1,6 +1,6 @@
 import json
 from test_evidence import A, B, observations, documented
-from zymecycle.conditions import investigate_conditions
+from petzyme.conditions import investigate_conditions
 
 
 def test_single_variable_observed_but_no_causal_claim(observations):

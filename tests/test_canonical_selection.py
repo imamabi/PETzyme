@@ -9,15 +9,15 @@ import httpx
 import pytest
 
 from test_build08b_remediation import QUESTION, TemperatureScenario
-from zymecycle.agent import run_investigation
-from zymecycle.agent_execution import execute_tool_call
-from zymecycle.agent_reporting import (format_research_report, required_source_fact_ids,
+from petzyme.agent import run_investigation
+from petzyme.agent_execution import execute_tool_call
+from petzyme.agent_reporting import (format_research_report, required_source_fact_ids,
                                         validate_investigation)
-from zymecycle.agent_request import interpret_request, select_tool_catalog
-from zymecycle.agent_types import AgentState
-from zymecycle.meta import MAX_BYTES, MetaModelClient
-from zymecycle.tools import validate_arguments
-from zymecycle.ui_adapter import ROOT
+from petzyme.agent_request import interpret_request, select_tool_catalog
+from petzyme.agent_types import AgentState
+from petzyme.meta import MAX_BYTES, MetaModelClient
+from petzyme.tools import validate_arguments
+from petzyme.ui_adapter import ROOT
 
 
 def call(identifier, arguments):
@@ -142,10 +142,10 @@ def test_undocumented_limit_bounds_reproduced_and_now_advertised_before_executio
     arguments={'query':{'protein_name':'ESM050'},'limit':limit}
     # Original generated schema accepted this, but investigate_pet_evidence() already rejected it.
     assert validate_arguments(arguments,old)
-    from zymecycle.pet_evidence import investigate_pet_evidence
+    from petzyme.pet_evidence import investigate_pet_evidence
     assert investigate_pet_evidence(**arguments)['status']=='ERROR'
     assert not validate_arguments(arguments,schema)
-    monkeypatch.setattr('zymecycle.agent_execution.invoke_tool',lambda *a,**k:pytest.fail('invalid limit must fail before invocation'))
+    monkeypatch.setattr('petzyme.agent_execution.invoke_tool',lambda *a,**k:pytest.fail('invalid limit must fail before invocation'))
     state=AgentState(str(ROOT/'data/nrel/label_data.csv'))
     event=execute_tool_call(call('invalid_limit',arguments),state,catalog)
     assert event['status']=='ERROR' and not required_source_fact_ids(interpret_request(QUESTION),state.events,state.facts)

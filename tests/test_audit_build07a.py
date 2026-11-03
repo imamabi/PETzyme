@@ -4,7 +4,7 @@ import sys
 from test_activity_snapshot import records
 from test_cross_overlap import inputs
 from scripts import audit_build07a
-from zymecycle.results import outcome
+from petzyme.results import outcome
 
 
 def test_manual_entry_defaults_to_offline_aggregate_only(inputs,monkeypatch,capsys):

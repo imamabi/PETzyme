@@ -1,7 +1,7 @@
 """Run from the repository root: python -m scripts.prepare_nrel."""
 import json
 from pathlib import Path
-from zymecycle.nrel import prepare
+from petzyme.nrel import prepare
 
 def main() -> None:
     """Flow: Receives external CLI invocation; returns None after prepare() validation is printed."""

@@ -1,6 +1,6 @@
 import json
 from test_evidence import A, B, observations, documented
-from zymecycle.tools import describe_tools, invoke_tool
+from petzyme.tools import describe_tools, invoke_tool
 
 
 def test_all_four_tools_discoverable_and_composable(observations):

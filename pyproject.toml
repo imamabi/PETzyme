@@ -1,5 +1,5 @@
 [project]
-name = "zymecycle"
+name = "petzyme"
 version = "0.0.1"
 description = "PETzyme scientific data tools"
 requires-python = ">=3.11"
@@ -20,7 +20,7 @@ markers = ["real_model: explicitly enabled local pretrained ESM-2 smoke test"]
 # Incremental strict scope: dialogue contracts, shared privacy/configuration and numeric telemetry.
 # Imported legacy/provider/scientific modules retain their existing runtime checks.
 [tool.mypy]
-files = ["zymecycle/privacy.py", "zymecycle/runtime_config.py", "zymecycle/dialogue_types.py", "zymecycle/clarification_intent.py", "zymecycle/dialogue.py", "zymecycle/dialogue_rules.py", "zymecycle/meta_telemetry.py", "zymecycle/decision_types.py", "zymecycle/decision.py", "zymecycle/decision_context.py", "zymecycle/decision_schema.py"]
+files = ["petzyme/privacy.py", "petzyme/runtime_config.py", "petzyme/dialogue_types.py", "petzyme/clarification_intent.py", "petzyme/dialogue.py", "petzyme/dialogue_rules.py", "petzyme/meta_telemetry.py", "petzyme/decision_types.py", "petzyme/decision.py", "petzyme/decision_context.py", "petzyme/decision_schema.py"]
 strict = true
 follow_imports = "silent"
 ignore_missing_imports = true

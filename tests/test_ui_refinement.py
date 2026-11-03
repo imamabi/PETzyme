@@ -10,11 +10,11 @@ import httpx
 import pytest
 from streamlit.testing.v1 import AppTest
 
-from zymecycle import metadata
-from zymecycle.pazy import PazyClient
-from zymecycle.ui_adapter import EXAMPLES, run_offline
-from zymecycle.ui_findings import display_response, finding_answer, prioritize_limitations
-from zymecycle.ui_pazy import discover_pazy_pet, doi_link
+from petzyme import metadata
+from petzyme.pazy import PazyClient
+from petzyme.ui_adapter import EXAMPLES, run_offline
+from petzyme.ui_findings import display_response, finding_answer, prioritize_limitations
+from petzyme.ui_pazy import discover_pazy_pet, doi_link
 
 APP = Path(__file__).resolve().parents[1] / 'tests/legacy_streamlit_app.py'
 
@@ -70,7 +70,7 @@ def client_for(monkeypatch, records, calls):
     def handle(request):
         calls.append((request.method, request.url.path, dict(request.url.params)))
         return httpx.Response(200, json={'count':len(records),'results':records,'next':'https://untrusted.invalid/', 'previous':None})
-    monkeypatch.setattr('zymecycle.pazy.time.sleep', lambda delay: None)
+    monkeypatch.setattr('petzyme.pazy.time.sleep', lambda delay: None)
     return PazyClient(transport=httpx.MockTransport(handle))
 
 
@@ -162,7 +162,7 @@ def test_pazy_ui_transient_no_export_no_paid_reruns(monkeypatch,synthetic):
     calls = []
     monkeypatch.setattr(metadata,'_DEFAULT_CLIENT',client_for(monkeypatch,[synthetic],calls))
     def forbidden(*a,**k): pytest.fail('PAZy discovery invoked Meta/Keychain')
-    monkeypatch.setattr('zymecycle.ui_live.subprocess.Popen',forbidden)
+    monkeypatch.setattr('petzyme.ui_live.subprocess.Popen',forbidden)
     at = AppTest.from_file(APP).run()
     at.sidebar.radio[0].set_value('Live PAZy discovery').run()
     assert calls == []

@@ -8,10 +8,10 @@ import pytest
 from streamlit.testing.v1 import AppTest
 from test_decision import QUESTION, option
 
-from zymecycle.agent_types import AgentState
-from zymecycle.dialogue import prepare_dialogue_turn, validate_dialogue_context
-from zymecycle.meta import MODEL, MetaModelClient
-from zymecycle.ui_adapter import investigate_with_backend
+from petzyme.agent_types import AgentState
+from petzyme.dialogue import prepare_dialogue_turn, validate_dialogue_context
+from petzyme.meta import MODEL, MetaModelClient
+from petzyme.ui_adapter import investigate_with_backend
 
 
 class PlanningTransport:
@@ -191,7 +191,7 @@ def test_real_app_callbacks_display_hypothetical_choices_and_adapt_without_cachi
         payload = kwargs["dialogue_input"]
         return run(payload, PlanningTransport(continuation=payload["context"] is not None))
 
-    monkeypatch.setattr("zymecycle.ui_dialogue.run_keychain_investigation", fake)
+    monkeypatch.setattr("petzyme.ui_dialogue.run_keychain_investigation", fake)
     at = AppTest.from_file(
         Path(__file__).resolve().parents[1] / "tests/legacy_streamlit_app.py", default_timeout=30
     ).run()
@@ -217,7 +217,7 @@ def test_real_app_callbacks_display_hypothetical_choices_and_adapt_without_cachi
 
 
 def test_equipment_subsets_do_not_open_a_general_numeric_vector_channel():
-    from zymecycle.privacy import outbound_safe
+    from petzyme.privacy import outbound_safe
 
     allowed = {"temperatures_c": [40, 60]}
     assert outbound_safe({"temperatures_c": [40]}, approved_subset_arrays=allowed)
@@ -240,7 +240,7 @@ def test_decision_ui_distinguishes_controls_and_unknown_feasibility_without_chan
     )
 
     def render(payload):
-        from zymecycle.ui_dialogue import render_experimental_decision
+        from petzyme.ui_dialogue import render_experimental_decision
 
         render_experimental_decision(payload, "MOCK_META")
 

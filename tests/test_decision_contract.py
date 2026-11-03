@@ -10,18 +10,18 @@ from test_decision import option, selection
 from test_decision import state as actual_state
 from test_decision_integration import PlanningTransport, first_payload, run
 
-from zymecycle.decision import DecisionError, validate_experimental_decision
-from zymecycle.decision_schema import (
+from petzyme.decision import DecisionError, validate_experimental_decision
+from petzyme.decision_schema import (
     MAX_SCHEMA_ISSUES,
     decision_contract_message,
     decision_json_schema,
     inspect_decision_schema,
     parse_decision_selection,
 )
-from zymecycle.decision_types import Design, ExperimentOption
-from zymecycle.meta import MetaModelClient
-from zymecycle.runtime_config import RuntimeLimits
-from zymecycle.ui_adapter import investigate_with_backend
+from petzyme.decision_types import Design, ExperimentOption
+from petzyme.meta import MetaModelClient
+from petzyme.runtime_config import RuntimeLimits
+from petzyme.ui_adapter import investigate_with_backend
 
 
 @pytest.fixture
@@ -259,7 +259,7 @@ def test_apptest_distinguishes_corrected_success_from_original_output_and_keeps_
     view = run(first_payload(), backend)["result"]
 
     def render(payload):
-        from zymecycle.ui_dialogue import render_dialogue_result
+        from petzyme.ui_dialogue import render_dialogue_result
 
         render_dialogue_result(payload, lambda _: None)
 

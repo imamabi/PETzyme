@@ -222,13 +222,13 @@ These tests validate software behavior and scientific safeguards; they do not co
 | Component | Purpose |
 |---|---|
 | `streamlit_app.py` | Researcher-facing interface |
-| `zymecycle/` | Scientific tools, agent orchestration, validation, and UI adapters |
+| `petzyme/` | Scientific tools, agent orchestration, validation, and UI adapters |
 | `scripts/` | Resource preparation, launch utilities, and CLI workflows |
 | `tests/` | Scientific, agent, privacy, and integration tests |
 | `*_MANIFEST.json` | Experimental source provenance and reconciliation |
 | `MODEL_PROVENANCE.json` | ESM-2 checkpoint and model integrity |
 
-**PETzyme** is the public project name. The internal Python package retains `zymecycle` for compatibility.
+**PETzyme** is the public project name. The Python package is `petzyme`.
 
 ## Scientific Sources
 

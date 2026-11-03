@@ -3,10 +3,10 @@ import pytest
 from test_agent import csv_path
 from scripts.demo_build03 import QUESTIONS, ScenarioMeta
 import httpx
-from zymecycle.agent import run_investigation
-from zymecycle.meta import MetaModelClient
-from zymecycle.agent_evidence import public_tool_update
-from zymecycle.results import outcome
+from petzyme.agent import run_investigation
+from petzyme.meta import MetaModelClient
+from petzyme.agent_evidence import public_tool_update
+from petzyme.results import outcome
 
 
 def run(csv_path, observer=None):

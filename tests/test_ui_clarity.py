@@ -7,9 +7,9 @@ from streamlit.testing.v1 import AppTest
 from test_researcher_workflow import QUESTION, PlanningBackend
 from test_scientific_scope import ENDPOINT, KINETIC, POLYPROPYLENE, AllPetFacts
 
-from zymecycle.runtime_config import RuntimeLimits
-from zymecycle.ui_adapter import EXAMPLES, investigate_with_backend, run_offline
-from zymecycle.ui_findings import evidence_snapshot, result_overview
+from petzyme.runtime_config import RuntimeLimits
+from petzyme.ui_adapter import EXAMPLES, investigate_with_backend, run_offline
+from petzyme.ui_findings import evidence_snapshot, result_overview
 
 
 def case_view(name):
@@ -183,7 +183,7 @@ def test_similarity_only_view_never_claims_measured_pet_observations():
 def test_result_focus_is_submission_only_and_does_not_repeat_scientific_execution(monkeypatch):
     from pathlib import Path
 
-    from zymecycle import ui_adapter
+    from petzyme import ui_adapter
 
     calls = []
     original = ui_adapter.run_offline

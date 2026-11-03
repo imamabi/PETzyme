@@ -146,6 +146,7 @@ def interpret_scientific_scope(question: str) -> RequestScope:
         r"|\b(?:replicat\w*|repeat)\b.*\bexperiment\w*\b"
         r"|\bexperiment\w*\b.*\b(?:replicat\w*|repeat)\b"
         r"|\bwhat\s+experiments?\s+should\s+(?:i|we)\s+(?:conduct|run|perform)\b"
+        r"|\b(?:what|which)\s+experiments?\s+should\s+(?:i|we)\s+(?:consider|try|test|do)(?:\s+\w+){0,2}\s+next\b"
         # Harmless equivalents of a planning request; not enzyme- or template-specific.
         r"|\bwhat\s+should\s+(?:i|we)\s+(?:test|try|measure)(?:\s+\w+){0,3}\s+next\b"
         r"|\bwhat\s+to\s+(?:test|try|measure)(?:\s+\w+){0,2}\s+next\b"

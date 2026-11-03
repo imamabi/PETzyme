@@ -3,16 +3,16 @@ import json
 import httpx
 import pytest
 
-from zymecycle.agent import run_investigation
-from zymecycle.agent_reporting import format_research_report
-from zymecycle.agent_request import interpret_request, select_tool_catalog
-from zymecycle.agent_execution import execute_tool_call
-from zymecycle.agent_types import AgentState
-from zymecycle.meta import MetaModelClient
-from zymecycle.pet_evidence import investigate_pet_evidence
-from zymecycle.pet_presenter import preview_pet_evidence
-from zymecycle.agent_evidence import safe_text
-from zymecycle.ui_adapter import EXAMPLES, run_offline
+from petzyme.agent import run_investigation
+from petzyme.agent_reporting import format_research_report
+from petzyme.agent_request import interpret_request, select_tool_catalog
+from petzyme.agent_execution import execute_tool_call
+from petzyme.agent_types import AgentState
+from petzyme.meta import MetaModelClient
+from petzyme.pet_evidence import investigate_pet_evidence
+from petzyme.pet_presenter import preview_pet_evidence
+from petzyme.agent_evidence import safe_text
+from petzyme.ui_adapter import EXAMPLES, run_offline
 
 
 class PetScenario:
@@ -128,12 +128,12 @@ def test_projection_filters_source_text_sequences_and_extra_context():
 
 @pytest.mark.parametrize('budget',[2,8])
 def test_new_tool_obeys_shared_scientific_attempt_budget(monkeypatch,budget):
-    from zymecycle.results import outcome
+    from petzyme.results import outcome
     attempts=[]
     def invoke(name,args):
         attempts.append(1)
         return outcome('ERROR',None,[],[],None,'Synthetic failure for budget edge only')
-    monkeypatch.setattr('zymecycle.agent_execution.invoke_tool',invoke)
+    monkeypatch.setattr('petzyme.agent_execution.invoke_tool',invoke)
     class Batches:
         mode='SYNTHETIC_BUDGET_TEST'
         def complete(self,messages,tools):
@@ -147,10 +147,10 @@ def test_new_tool_obeys_shared_scientific_attempt_budget(monkeypatch,budget):
 
 def test_executed_identity_tool_produces_bound_reusable_transient_handle(monkeypatch):
     # Identity routing edge: the API response is synthetic; no new real PAZy identity is claimed.
-    from zymecycle.pet_retrieval import ROOT,load_activity_source,match_pet_assays
-    from zymecycle.observations import load_nrel,select_nrel_protein
-    from zymecycle.metadata import get_pazy_metadata
-    from zymecycle.pazy import PazyClient
+    from petzyme.pet_retrieval import ROOT,load_activity_source,match_pet_assays
+    from petzyme.observations import load_nrel,select_nrel_protein
+    from petzyme.metadata import get_pazy_metadata
+    from petzyme.pazy import PazyClient
     table=load_nrel(str(ROOT/'data/nrel/label_data.csv'))['result']
     local=select_nrel_protein(table,'ESM050')['result']
     pid=match_pet_assays(load_activity_source()['result'],{'protein_name':'ESM050'})[0]['protein_id']

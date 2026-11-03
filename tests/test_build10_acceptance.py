@@ -1,8 +1,8 @@
 """Independent acceptance inputs against real local triage and Streamlit state."""
 import json
 import pytest
-from zymecycle.clarification import start_clarification, advance_clarification
-from zymecycle.observations import load_nrel, select_nrel_protein
+from petzyme.clarification import start_clarification, advance_clarification
+from petzyme.observations import load_nrel, select_nrel_protein
 from test_ui_clarification import app, begin, reply
 
 EXACT_QUESTION = ('Should I use ESM050 or LCCMC?\n'
@@ -35,7 +35,7 @@ def test_complete_rejection_sentence_records_candidate_and_prevents_repeat():
 
 
 def test_actual_ambiguous_sequence_length_and_context(monkeypatch):
-    import zymecycle.clarification as module
+    import petzyme.clarification as module
     actual = module.triage_protein
     calls = []
     def observed(*args, **kwargs):
@@ -145,8 +145,8 @@ def test_source_backed_spelling_candidates_require_confirmation(spelling, label)
 
 
 def test_real_documented_alias_stays_transient_and_source_attributed():
-    from zymecycle.pet_retrieval import load_activity_source
-    from zymecycle.protein_triage import triage_protein
+    from petzyme.pet_retrieval import load_activity_source
+    from petzyme.protein_triage import triage_protein
     snapshot = load_activity_source()['result']
     assert snapshot is not None
     for record in snapshot['records']:
@@ -169,7 +169,7 @@ def test_real_documented_alias_stays_transient_and_source_attributed():
 
 
 def test_distinct_valid_identifiers_and_unsupported_typo_are_not_merged():
-    from zymecycle.protein_triage import triage_protein
+    from petzyme.protein_triage import triage_protein
     state = start_clarification(FINAL_QUESTION.replace('ESM050', 'DP038').replace('LCCMC', 'DP039'))['state']
     assert state['confirmed_labels'] == ['DP038', 'DP039']
     assert state['pending_candidate'] is None

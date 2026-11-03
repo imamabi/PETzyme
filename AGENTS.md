@@ -14,7 +14,7 @@ experiments, infer activity from sequence similarity, or invent experimental
 outcomes, constructs, replicates, detection limits or causal conclusions.
 
 Callable scientific tools must work independently of an LLM, remain discoverable
-through `zymecycle.tools`, and return typed JSON-serializable envelopes with
+through `petzyme.tools`, and return typed JSON-serializable envelopes with
 execution status, result, provenance, limitations and evidence category:
 MEASURED, COMPUTED, HYPOTHETICAL (or SIMULATED only when a simulator is actually
 implemented). Use None where no evidence category applies; metadata is not

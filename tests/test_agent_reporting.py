@@ -1,9 +1,9 @@
 import json
 from test_agent_execution import setup, call
 from scripts.demo_build03 import QUESTIONS
-from zymecycle.agent_execution import execute_tool_call
-from zymecycle.agent_request import interpret_request
-from zymecycle.agent_reporting import validate_investigation
+from petzyme.agent_execution import execute_tool_call
+from petzyme.agent_request import interpret_request
+from petzyme.agent_reporting import validate_investigation
 
 
 def executed(setup, *, wrong_condition=False, subset=False):
@@ -38,7 +38,7 @@ def test_reject_freeform_overclaim_and_fabricated_refs(setup):
 def test_scope_validation_prevents_false_no_data_and_subsets(setup):
     for options in ({'wrong_condition': True}, {'subset': True}):
         # Independent state for each branch, reusing the synthetic data file.
-        from zymecycle.agent_types import AgentState
+        from petzyme.agent_types import AgentState
         original, catalog = setup
         state = executed((AgentState(original.csv_path), catalog), **options)
         selection = {'fact_ids': [fact['id'] for fact in state.facts]}

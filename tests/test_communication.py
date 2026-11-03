@@ -2,9 +2,9 @@
 from copy import deepcopy
 import json
 import pytest
-from zymecycle.agent import run_investigation
-from zymecycle.communication import SECTIONS, validate_explanation
-from zymecycle.ui_adapter import EXAMPLES, OfflineWorkflow
+from petzyme.agent import run_investigation
+from petzyme.communication import SECTIONS, validate_explanation
+from petzyme.ui_adapter import EXAMPLES, OfflineWorkflow
 
 
 def draft_from_facts(facts):

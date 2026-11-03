@@ -80,7 +80,7 @@ def test_environment_credential_reaches_only_authorized_child(monkeypatch, capsy
         return subprocess.CompletedProcess(command, 0)
     monkeypatch.setattr(launch_meta.subprocess, 'run', run)
     assert launch_meta.credential_available()
-    assert launch_meta.launch_live(['python', '-m', 'zymecycle.ui_live']) == 0
+    assert launch_meta.launch_live(['python', '-m', 'petzyme.ui_live']) == 0
     assert 'MODEL_API_KEY' not in seen[0]
     assert 'SYNTHETIC_ENVIRONMENT_KEY' not in str(capsys.readouterr())
 

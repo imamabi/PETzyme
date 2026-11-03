@@ -4,10 +4,10 @@ import json
 import pytest
 from streamlit.testing.v1 import AppTest
 
-from zymecycle.agent import run_investigation
-from zymecycle.agent_reporting import format_research_report
-from zymecycle.agent_request import interpret_request, select_tool_catalog
-from zymecycle.ui_adapter import EXAMPLES, ROOT
+from petzyme.agent import run_investigation
+from petzyme.agent_reporting import format_research_report
+from petzyme.agent_request import interpret_request, select_tool_catalog
+from petzyme.ui_adapter import EXAMPLES, ROOT
 
 
 QUESTIONS = {
@@ -125,8 +125,8 @@ def test_multistudy_answer_is_outside_collapsing_progress_panel():
 def test_original_four_demonstrations_real_local_apptest(index, monkeypatch):
     def forbidden(*a, **k):
         pytest.fail('Offline acceptance attempted provider inference or Keychain launch')
-    monkeypatch.setattr('zymecycle.meta.MetaModelClient.complete', forbidden)
-    monkeypatch.setattr('zymecycle.ui_live.subprocess.Popen', forbidden)
+    monkeypatch.setattr('petzyme.meta.MetaModelClient.complete', forbidden)
+    monkeypatch.setattr('petzyme.ui_live.subprocess.Popen', forbidden)
     at = AppTest.from_file(ROOT / 'tests/legacy_streamlit_app.py', default_timeout=60).run()
     at.button(key=f'example_{index}').click().run()
     at.button(key='investigate').click().run()

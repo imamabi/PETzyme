@@ -11,10 +11,10 @@ import pytest
 from streamlit.testing.v1 import AppTest
 
 from test_build08b_remediation import TemperatureScenario, QUESTION
-from zymecycle.meta import (COMPLETION_ALLOWANCES, MAX_COMPLETION_TOKENS, MAX_BYTES,
+from petzyme.meta import (COMPLETION_ALLOWANCES, MAX_COMPLETION_TOKENS, MAX_BYTES,
     REQUEST_TIMEOUT_SECONDS, MetaModelClient, ModelError)
-from zymecycle.meta_telemetry import estimated_token_cost
-from zymecycle.ui_adapter import ROOT, investigate_with_backend
+from petzyme.meta_telemetry import estimated_token_cost
+from petzyme.ui_adapter import ROOT, investigate_with_backend
 
 
 def transport_for(scenario, allowance):
@@ -52,7 +52,7 @@ def test_all_allowances_real_science_grounding_privacy_and_telemetry(allowance):
 
 @pytest.mark.parametrize('bad',[True,15000,200000,0,'10000',None])
 def test_invalid_allowance_cannot_start_provider_or_worker(bad,monkeypatch):
-    from zymecycle import ui_live
+    from petzyme import ui_live
     with pytest.raises(ValueError):MetaModelClient(completion_tokens=bad)
     monkeypatch.setattr(ui_live.subprocess,'Popen',lambda *a,**k:pytest.fail('must not launch'))
     assert ui_live.run_keychain_investigation(QUESTION,authorized=True,completion_tokens=bad)['status']=='ERROR'
@@ -95,10 +95,10 @@ def test_original_default_and_no_client_lifetime_budget():
 
 @pytest.mark.parametrize('allowance',COMPLETION_ALLOWANCES)
 def test_exact_parent_launcher_worker_command_with_offline_dependencies(allowance,tmp_path,monkeypatch):
-    from zymecycle import ui_live
+    from petzyme import ui_live
     # Test-only module wrappers substitute the two external dependencies, not execution/argument parsing.
     # PYTHONSAFEPATH makes the wrappers precede cwd; the production -m commands remain exact.
-    for package in ('scripts','zymecycle'):
+    for package in ('scripts','petzyme'):
         directory=tmp_path/package;directory.mkdir()
         (directory/'__init__.py').write_text('__path__.append('+repr(str(ROOT/package))+')\n')
     common='''import importlib.util,socket,sys,os
@@ -115,15 +115,15 @@ assert os.environ.get('MODEL_API_KEY') == 'synthetic-parent-must-be-removed'
 module._lookup=lambda password:subprocess.CompletedProcess([],0,b'synthetic-child-only\\n')
 raise SystemExit(module.main())
 ''')
-    (tmp_path/'zymecycle/ui_live.py').write_text(common+'''
+    (tmp_path/'petzyme/ui_live.py').write_text(common+'''
 import httpx
 from tests.test_build08b_remediation import TemperatureScenario
-from zymecycle import ui_adapter,meta
+from petzyme import ui_adapter,meta
 assert os.environ.get('MODEL_API_KEY')=='synthetic-child-only'
 scenario=TemperatureScenario()
 Original=meta.MetaModelClient
 meta.MetaModelClient=lambda **kwargs:Original(transport=httpx.MockTransport(scenario.respond),completion_tokens=kwargs['completion_tokens'],max_estimated_cost_usd=kwargs.get('max_estimated_cost_usd'))
-spec=importlib.util.spec_from_file_location('zymecycle._real_ui_live',ROOT/'zymecycle/ui_live.py')
+spec=importlib.util.spec_from_file_location('petzyme._real_ui_live',ROOT/'petzyme/ui_live.py')
 module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
 raise SystemExit(module.worker_main())
 ''')
@@ -138,7 +138,7 @@ raise SystemExit(module.worker_main())
     monkeypatch.setattr(ui_live.subprocess,'Popen',observe)
     updates=[]
     result=ui_live.run_keychain_investigation(QUESTION,authorized=True,completion_tokens=allowance,on_update=updates.append)
-    assert len(commands)==1 and commands[0]==[sys.executable,'-m','scripts.launch_meta','--authorize-paid-meta','--',sys.executable,'-m','zymecycle.ui_live','--live-worker']
+    assert len(commands)==1 and commands[0]==[sys.executable,'-m','scripts.launch_meta','--authorize-paid-meta','--',sys.executable,'-m','petzyme.ui_live','--live-worker']
     assert result['result'] is not None and len(updates)==2
     view=result['result']
     assert view['synthesis']['status']=='VALIDATED_FACT_SELECTION'
@@ -153,7 +153,7 @@ raise SystemExit(module.worker_main())
 
 @pytest.mark.parametrize('finish',['stop','length'])
 def test_minimal_live_ui_controls_with_mocked_provider(monkeypatch,finish):
-    from zymecycle import ui_live
+    from petzyme import ui_live
     calls=[]
     def fake_live(question,*,authorized,on_update,completion_tokens,runtime_limits,cost_ceiling_usd):
         calls.append(completion_tokens);assert authorized

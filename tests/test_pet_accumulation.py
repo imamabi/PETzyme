@@ -2,11 +2,11 @@ from copy import deepcopy
 
 import pytest
 
-from zymecycle.agent_evidence import safe_text
-from zymecycle.agent_request import interpret_request
-from zymecycle.pet_accumulation import accumulate_pet_results, requested_condition_coverage
-from zymecycle.pet_evidence import investigate_pet_evidence
-from zymecycle.pet_presenter import preview_pet_evidence
+from petzyme.agent_evidence import safe_text
+from petzyme.agent_request import interpret_request
+from petzyme.pet_accumulation import accumulate_pet_results, requested_condition_coverage
+from petzyme.pet_evidence import investigate_pet_evidence
+from petzyme.pet_presenter import preview_pet_evidence
 
 QUESTION = 'Compare multi-study NREL and PAZy evidence for ESM050 at 40°C versus 60°C, pH 6.5, crystalline PET powder.'
 

@@ -2,9 +2,9 @@ from copy import deepcopy
 import json
 import pytest
 
-from zymecycle.evidence import assess_evidence
-from zymecycle.experimental import PROTOCOL_FIELDS, cell_locator
-from zymecycle.observations import load_nrel, parse_nrel
+from petzyme.evidence import assess_evidence
+from petzyme.experimental import PROTOCOL_FIELDS, cell_locator
+from petzyme.observations import load_nrel, parse_nrel
 
 A = {'temperature_c': 40, 'ph': 6.5, 'pet_form': 'CRYSTALLINE_POWDER'}
 B = {**A, 'temperature_c': 60}

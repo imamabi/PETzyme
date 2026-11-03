@@ -1,7 +1,7 @@
 from copy import deepcopy
 import pytest
 
-from zymecycle.cross_comparability import REQUIRED, assess_cross_source_comparability
+from petzyme.cross_comparability import REQUIRED, assess_cross_source_comparability
 
 SOURCE={'name':'Synthetic documentation','url':'https://example.invalid/','doi':'10.1234/test',
         'locator':'Table 1, row A, replicate 1','attribution':'Synthetic fixture','retrieved_at_utc':None}

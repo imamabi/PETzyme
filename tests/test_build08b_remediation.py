@@ -5,11 +5,11 @@ import httpx
 import pytest
 from streamlit.testing.v1 import AppTest
 
-from zymecycle.agent import run_investigation
-from zymecycle.agent_evidence import model_evidence
-from zymecycle.agent_reporting import format_research_report
-from zymecycle.meta import MAX_COMPLETION_TOKENS, CompletionLimitError, MetaModelClient
-from zymecycle.ui_adapter import ROOT, investigate_with_backend
+from petzyme.agent import run_investigation
+from petzyme.agent_evidence import model_evidence
+from petzyme.agent_reporting import format_research_report
+from petzyme.meta import MAX_COMPLETION_TOKENS, CompletionLimitError, MetaModelClient
+from petzyme.ui_adapter import ROOT, investigate_with_backend
 
 QUESTION = ('What does the available NREL and PAZy experimental evidence tell us about ESM050 '
             'at 40°C versus 60°C, pH 6.5, using crystalline PET powder? '
@@ -110,7 +110,7 @@ def test_unsupported_final_claims_remain_unaccepted(final):
 
 
 def test_equivalent_mock_requests_have_smaller_context_without_budget_change(monkeypatch):
-    import zymecycle.agent as agent
+    import petzyme.agent as agent
     old=TemperatureScenario()
     with monkeypatch.context() as patch:
         patch.setattr(agent,'compact_model_evidence',lambda e,f,m:model_evidence(e,f))
@@ -126,7 +126,7 @@ def test_equivalent_mock_requests_have_smaller_context_without_budget_change(mon
 
 @pytest.mark.parametrize('finish,invalid',[('stop',False),('length',True)])
 def test_apptest_combined_values_failure_status_and_transience(monkeypatch,finish,invalid):
-    from zymecycle import ui_adapter
+    from petzyme import ui_adapter
     scenario=TemperatureScenario(finish=finish)
     monkeypatch.setattr(ui_adapter,'run_offline',lambda q,**kw:investigate_with_backend(q,client(scenario),**kw))
     at=AppTest.from_file(ROOT/'tests/legacy_streamlit_app.py',default_timeout=30).run()

@@ -5,14 +5,14 @@ from pathlib import Path
 import httpx
 import pytest
 from streamlit.testing.v1 import AppTest
-from zymecycle.agent import run_investigation
-from zymecycle.agent_execution import execute_tool_call
-from zymecycle.agent_reporting import format_research_report
-from zymecycle.agent_request import interpret_request, required_tool_steps, select_tool_catalog
-from zymecycle.agent_types import AgentState
-from zymecycle.meta import MetaModelClient
-from zymecycle.tools import describe_tools, invoke_tool
-from zymecycle.ui_adapter import EXAMPLES, run_offline
+from petzyme.agent import run_investigation
+from petzyme.agent_execution import execute_tool_call
+from petzyme.agent_reporting import format_research_report
+from petzyme.agent_request import interpret_request, required_tool_steps, select_tool_catalog
+from petzyme.agent_types import AgentState
+from petzyme.meta import MetaModelClient
+from petzyme.tools import describe_tools, invoke_tool
+from petzyme.ui_adapter import EXAMPLES, run_offline
 from test_research_advisor import A, B
 
 QUESTION = EXAMPLES['Integrated experiment advisor']
@@ -135,7 +135,7 @@ def test_offline_composition_exposes_both_temperatures_and_truthful_partial():
 
 def test_display_union_keeps_original_bound_and_reports_omitted_components():
     from copy import deepcopy
-    from zymecycle.ui_adapter import present_investigation
+    from petzyme.ui_adapter import present_investigation
     scenario = AdviceTransport()
     updates = []
     result = run_investigation(QUESTION, MetaModelClient(transport=httpx.MockTransport(scenario.respond)),
@@ -150,8 +150,8 @@ def test_display_union_keeps_original_bound_and_reports_omitted_components():
 
 def test_apptest_transient_order_controls_publications_rerun_and_no_api(monkeypatch):
     def blocked(*a, **k): pytest.fail('Offline UI attempted credential access or live inference')
-    monkeypatch.setattr('zymecycle.meta.MetaModelClient.complete', blocked)
-    monkeypatch.setattr('zymecycle.ui_live.subprocess.Popen', blocked)
+    monkeypatch.setattr('petzyme.meta.MetaModelClient.complete', blocked)
+    monkeypatch.setattr('petzyme.ui_live.subprocess.Popen', blocked)
     at = AppTest.from_file(APP, default_timeout=30).run()
     at.button(key='example_7').click().run()
     at.button(key='investigate').click().run()

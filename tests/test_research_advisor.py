@@ -1,8 +1,8 @@
 """Real local evidence validation; no network, provider or protein inference."""
 import json
 import pytest
-from zymecycle import research_advisor as advisor
-from zymecycle.results import outcome
+from petzyme import research_advisor as advisor
+from petzyme.results import outcome
 
 A = {'temperature_c': 40, 'ph': 6.5, 'pet_form': 'CRYSTALLINE_POWDER'}
 B = {**A, 'temperature_c': 60}
@@ -106,7 +106,7 @@ def test_no_writes_inference_or_api(monkeypatch, capsys, caplog):
     import builtins
     import io
     import os
-    from zymecycle import esm, pazy, meta
+    from petzyme import esm, pazy, meta
     def blocked(*args, **kwargs): raise AssertionError('Forbidden inference or persistence')
     original = builtins.open
     original_io = io.open

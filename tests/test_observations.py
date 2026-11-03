@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from zymecycle.observations import (filter_observations, load_nrel, parse_nrel,
+from petzyme.observations import (filter_observations, load_nrel, parse_nrel,
                                     select_nrel_protein, summarize_condition)
 
 

@@ -10,14 +10,14 @@ from streamlit.testing.v1 import AppTest
 from test_communication import draft_from_facts
 from test_communication_integration import expanded_facts
 
-from zymecycle.agent import run_investigation
-from zymecycle.agent_request import interpret_request, select_tool_catalog
-from zymecycle.communication import validate_explanation
-from zymecycle.meta import MODEL, MetaModelClient
-from zymecycle.pet_evidence import investigate_pet_evidence
-from zymecycle.research_advisor import advise_next_experiment
-from zymecycle.ui_adapter import investigate_with_backend
-from zymecycle.ui_live import general_research_question
+from petzyme.agent import run_investigation
+from petzyme.agent_request import interpret_request, select_tool_catalog
+from petzyme.communication import validate_explanation
+from petzyme.meta import MODEL, MetaModelClient
+from petzyme.pet_evidence import investigate_pet_evidence
+from petzyme.research_advisor import advise_next_experiment
+from petzyme.ui_adapter import investigate_with_backend
+from petzyme.ui_live import general_research_question
 
 ROOT = Path(__file__).resolve().parents[1]
 QUESTION = "Investigate ESM050. What experimental conditions and outcomes are reported, and what should I test next?"
@@ -114,7 +114,7 @@ def test_explicit_single_source_is_a_pre_execution_boundary(monkeypatch):
     def forbidden(*args, **kwargs):
         pytest.fail("Explicit PAZy-only retrieval must not open NREL data")
 
-    monkeypatch.setattr("zymecycle.pet_evidence.load_nrel", forbidden)
+    monkeypatch.setattr("petzyme.pet_evidence.load_nrel", forbidden)
     result = investigate_pet_evidence({"protein_name": "ESM050"}, source_scope="PAZY_ONLY")
     assert result["result"]["nrel"]["returned"] == 0 and result["result"]["pazy"]["returned"] > 0
     assert all(s["name"] != "NREL" for s in result["provenance"])
@@ -204,7 +204,7 @@ def test_real_live_muse_ui_path_preserves_both_sources_transiently(monkeypatch):
         assert kwargs["dialogue_input"]["text"] == QUESTION
         return deepcopy(result)
 
-    monkeypatch.setattr("zymecycle.ui_dialogue.run_keychain_investigation", launch)
+    monkeypatch.setattr("petzyme.ui_dialogue.run_keychain_investigation", launch)
     app = AppTest.from_file(str(ROOT / "tests/legacy_streamlit_app.py"), default_timeout=30).run()
     app.radio(key="mode").set_value("Live Muse dialogue").run()
     app.text_area(key="dialogue_text").set_value(QUESTION)
@@ -219,8 +219,8 @@ def test_real_live_muse_ui_path_preserves_both_sources_transiently(monkeypatch):
 
 
 def test_pazy_only_named_evidence_has_executable_offline_intent():
-    from zymecycle.agent_request import interpret_request
-    from zymecycle.ui_adapter import run_offline
+    from petzyme.agent_request import interpret_request
+    from petzyme.ui_adapter import run_offline
 
     question = 'Show PAZy evidence only for ESM050 at 40°C.'
     request = interpret_request(question)
@@ -234,9 +234,9 @@ def test_general_question_crosses_real_launcher_worker_boundary_offline(tmp_path
     import inspect
     import os
 
-    from zymecycle import ui_live
+    from petzyme import ui_live
 
-    for package in ("scripts", "zymecycle"):
+    for package in ("scripts", "petzyme"):
         directory = tmp_path / package
         directory.mkdir()
         (directory / "__init__.py").write_text(
@@ -259,13 +259,13 @@ module._lookup=lambda password:subprocess.CompletedProcess([],0,b'synthetic-chil
 raise SystemExit(module.main())
 """
     )
-    (tmp_path / "zymecycle/ui_live.py").write_text(
+    (tmp_path / "petzyme/ui_live.py").write_text(
         common
         + """
 import httpx, json
 from test_communication import draft_from_facts
 from test_communication_integration import expanded_facts
-from zymecycle import ui_adapter, meta
+from petzyme import ui_adapter, meta
 MODEL=meta.MODEL
 """
         + inspect.getsource(CombinedScenario)
@@ -274,7 +274,7 @@ assert os.environ['MODEL_API_KEY']=='synthetic-child-only'
 scenario=CombinedScenario()
 Original=meta.MetaModelClient
 meta.MetaModelClient=lambda **kw:Original(transport=httpx.MockTransport(scenario.respond),completion_tokens=kw['completion_tokens'],max_estimated_cost_usd=kw['max_estimated_cost_usd'])
-spec=importlib.util.spec_from_file_location('zymecycle._live_real',ROOT/'zymecycle/ui_live.py')
+spec=importlib.util.spec_from_file_location('petzyme._live_real',ROOT/'petzyme/ui_live.py')
 module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
 raise SystemExit(module.worker_main())
 """
@@ -305,7 +305,7 @@ raise SystemExit(module.worker_main())
 
 
 def test_pazy_only_ranking_does_not_consult_nrel(monkeypatch):
-    from zymecycle.enzyme_discovery import discover_pet_enzymes
+    from petzyme.enzyme_discovery import discover_pet_enzymes
 
     request = interpret_request("What are the five best PET enzymes using PAZy only?")
     catalog = select_tool_catalog(request)
@@ -320,7 +320,7 @@ def test_pazy_only_ranking_does_not_consult_nrel(monkeypatch):
     def forbidden(*args, **kwargs):
         pytest.fail("Source-excluded NREL data accessed")
 
-    monkeypatch.setattr("zymecycle.enzyme_discovery.load_nrel", forbidden)
+    monkeypatch.setattr("petzyme.enzyme_discovery.load_nrel", forbidden)
     result = discover_pet_enzymes(include_nrel_references=False)
     assert result["result"]["entries"]
     assert all(not e["nrel_references"] for e in result["result"]["entries"])
@@ -328,10 +328,10 @@ def test_pazy_only_ranking_does_not_consult_nrel(monkeypatch):
 
 def test_pazy_only_ui_does_not_claim_two_selected_sources():
     app = AppTest.from_string('''
-from zymecycle.pet_evidence import investigate_pet_evidence
-from zymecycle.pet_presenter import preview_pet_evidence
-from zymecycle.privacy import safe_public_text
-from zymecycle.ui_experiments import render_combined_experiments
+from petzyme.pet_evidence import investigate_pet_evidence
+from petzyme.pet_presenter import preview_pet_evidence
+from petzyme.privacy import safe_public_text
+from petzyme.ui_experiments import render_combined_experiments
 value=investigate_pet_evidence({'protein_name':'IsPETase'},source_scope='PAZY_ONLY')['result']
 render_combined_experiments(preview_pet_evidence(value,safe_public_text))
 ''', default_timeout=30).run()
@@ -342,9 +342,9 @@ render_combined_experiments(preview_pet_evidence(value,safe_public_text))
 
 
 def test_documentary_links_do_not_double_count_identical_nrel_measurements():
-    from zymecycle.pet_accumulation import accumulate_pet_results
-    from zymecycle.pet_presenter import preview_pet_evidence
-    from zymecycle.privacy import safe_public_text
+    from petzyme.pet_accumulation import accumulate_pet_results
+    from petzyme.pet_presenter import preview_pet_evidence
+    from petzyme.privacy import safe_public_text
 
     runs = [
         {
@@ -373,7 +373,7 @@ def test_documentary_links_do_not_double_count_identical_nrel_measurements():
 
 
 def test_incomplete_muse_keeps_executed_conditional_tool_plan_visible():
-    from zymecycle.ui_findings import result_overview
+    from petzyme.ui_findings import result_overview
 
     scenario = CombinedScenario()
     view = investigate_with_backend(QUESTION, MetaModelClient(transport=httpx.MockTransport(scenario.respond)))['result']
@@ -389,8 +389,8 @@ def test_discovery_live_telemetry_is_accessible_without_another_request():
     # Rendering-only fixture: native local data, no live provider invocation.
     source = """
 import streamlit as st
-from zymecycle.ui_adapter import run_local_discovery
-from zymecycle.ui_results import render_result
+from petzyme.ui_adapter import run_local_discovery
+from petzyme.ui_results import render_result
 v=run_local_discovery('What are the five enzymes with the best response for PET breakdown?')['result']
 v['mode']='LIVE_META'
 render_result(v,lambda:st.caption('Provider diagnostics available'))
@@ -402,9 +402,9 @@ render_result(v,lambda:st.caption('Provider diagnostics available'))
 
 
 def test_pazy_reported_endpoints_count_as_responses_without_establishing_kinetics():
-    from zymecycle.agent_execution import execute_tool_call
-    from zymecycle.agent_scope import assess_agent_scope
-    from zymecycle.agent_types import AgentState
+    from petzyme.agent_execution import execute_tool_call
+    from petzyme.agent_scope import assess_agent_scope
+    from petzyme.agent_types import AgentState
 
     question = 'Investigate PAZy-only PET experimental evidence for IsPETase outside the NREL publication: show recorded responses.'
     request = interpret_request(question)
@@ -423,9 +423,9 @@ def test_pazy_reported_endpoints_count_as_responses_without_establishing_kinetic
 
 
 def test_exact_pazy_scope_requires_both_requested_conditions():
-    from zymecycle.agent_execution import execute_tool_call
-    from zymecycle.agent_reporting import validate_investigation
-    from zymecycle.agent_types import AgentState
+    from petzyme.agent_execution import execute_tool_call
+    from petzyme.agent_reporting import validate_investigation
+    from petzyme.agent_types import AgentState
 
     request = interpret_request('Compare PAZy-only recorded PET responses for ESM050 at 40C and 60C, pH 6.5 using crystalline powder.')
     catalog = select_tool_catalog(request)

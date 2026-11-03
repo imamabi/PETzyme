@@ -4,13 +4,13 @@ import copy
 
 import pytest
 
-from zymecycle.advisor_candidates import CONTROLS
-from zymecycle.agent_evidence import project_evidence
-from zymecycle.agent_types import AgentState
-from zymecycle.decision import REQUIRED_CONTROLS, DecisionError, validate_experimental_decision
-from zymecycle.dialogue import prepare_dialogue_turn
-from zymecycle.observations import load_nrel, parse_nrel
-from zymecycle.results import outcome
+from petzyme.advisor_candidates import CONTROLS
+from petzyme.agent_evidence import project_evidence
+from petzyme.agent_types import AgentState
+from petzyme.decision import REQUIRED_CONTROLS, DecisionError, validate_experimental_decision
+from petzyme.dialogue import prepare_dialogue_turn
+from petzyme.observations import load_nrel, parse_nrel
+from petzyme.results import outcome
 
 QUESTION = (
     "Should I use ESM050 or LCC-ICCG? My equipment supports 40C and 60C, but I cannot exceed pH 7."
@@ -192,7 +192,7 @@ def test_measurement_qualification_can_be_a_model_selected_distinct_alternative(
 
 
 def test_failed_source_authentication_cannot_support_any_plan(state, monkeypatch):
-    monkeypatch.setattr("zymecycle.decision.load_authenticated_nrel_reference", lambda: None)
+    monkeypatch.setattr("petzyme.decision.load_authenticated_nrel_reference", lambda: None)
     with pytest.raises(DecisionError, match="NREL_UNAVAILABLE"):
         validate(selection(state), state)
 

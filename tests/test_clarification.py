@@ -2,8 +2,8 @@
 from copy import deepcopy
 import json
 import pytest
-from zymecycle.clarification import start_clarification, advance_clarification
-from zymecycle.observations import load_nrel, select_nrel_protein
+from petzyme.clarification import start_clarification, advance_clarification
+from petzyme.observations import load_nrel, select_nrel_protein
 
 QUESTION = 'Should I use ESM050 or LCCMC? My device supports 40C and 60C, but I cannot operate above pH 7.'
 

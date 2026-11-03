@@ -8,10 +8,10 @@ import pytest
 from streamlit.testing.v1 import AppTest
 from test_decision_integration import PlanningTransport, first_payload, run
 
-from zymecycle.agent_evidence import project_evidence, public_tool_update
-from zymecycle.protein_triage import triage_protein
-from zymecycle.results import outcome
-from zymecycle.ui_identity import identity_card
+from petzyme.agent_evidence import project_evidence, public_tool_update
+from petzyme.protein_triage import triage_protein
+from petzyme.results import outcome
+from petzyme.ui_identity import identity_card
 
 
 def update_for(result):
@@ -53,7 +53,7 @@ def test_identity_preview_variants_do_not_invent_fields_or_crash(case):
     original = copy.deepcopy(update)
 
     def render(item):
-        from zymecycle.ui_identity import render_identity_update
+        from petzyme.ui_identity import render_identity_update
 
         render_identity_update(item)
 
@@ -114,7 +114,7 @@ def test_failed_triage_can_coexist_with_real_grounded_accepted_decision():
     context = copy.deepcopy(view["dialogue"]["context"])
 
     def render(payload):
-        from zymecycle.ui_dialogue import render_dialogue_result
+        from petzyme.ui_dialogue import render_dialogue_result
 
         render_dialogue_result(payload, lambda _: None)
 
@@ -142,7 +142,7 @@ def test_normal_page_submission_survives_failed_triage_and_keeps_adaptive_contex
             kwargs["on_update"](update)
         return result
 
-    monkeypatch.setattr("zymecycle.ui_dialogue.run_keychain_investigation", fake)
+    monkeypatch.setattr("petzyme.ui_dialogue.run_keychain_investigation", fake)
     at = AppTest.from_file(
         Path(__file__).resolve().parents[1] / "tests/legacy_streamlit_app.py", default_timeout=30
     ).run()
@@ -184,7 +184,7 @@ def test_normal_page_submission_survives_failed_triage_and_keeps_adaptive_contex
 
 
 def test_readable_experiment_summary_preserves_hypothetical_conditions_and_technical_evidence():
-    from zymecycle.ui_decision import experiment_summary
+    from petzyme.ui_decision import experiment_summary
 
     view = run(first_payload(), PlanningTransport())["result"]
     decision = view["dialogue"]["decision"]
@@ -198,7 +198,7 @@ def test_readable_experiment_summary_preserves_hypothetical_conditions_and_techn
     assert "BALANCED_ENZYME_TEMPERATURE" not in summary
 
     def render(payload):
-        from zymecycle.ui_dialogue import render_experimental_decision
+        from petzyme.ui_dialogue import render_experimental_decision
 
         render_experimental_decision(payload, "MOCK_META")
 
@@ -219,7 +219,7 @@ def test_explicit_reset_revokes_unsubmitted_authorization_and_resets_form(monkey
     def forbidden(*args, **kwargs):
         raise AssertionError("Reset must not launch an investigation")
 
-    monkeypatch.setattr("zymecycle.ui_dialogue.run_keychain_investigation", forbidden)
+    monkeypatch.setattr("petzyme.ui_dialogue.run_keychain_investigation", forbidden)
     at = AppTest.from_file(
         Path(__file__).resolve().parents[1] / "tests/legacy_streamlit_app.py", default_timeout=30
     ).run()

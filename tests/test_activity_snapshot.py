@@ -5,8 +5,8 @@ from copy import deepcopy
 
 import pytest
 
-from zymecycle import activity_snapshot as module
-from zymecycle.activity_snapshot import iter_assays, load_pazy_activity_snapshot
+from petzyme import activity_snapshot as module
+from petzyme.activity_snapshot import iter_assays, load_pazy_activity_snapshot
 
 
 @pytest.fixture

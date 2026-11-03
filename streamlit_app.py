@@ -8,16 +8,15 @@ from typing import Literal, TypedDict
 
 import streamlit as st
 
-from scripts.launch_meta import credential_available
-from zymecycle.agent_request import interpret_request
-from zymecycle.agent_types import ToolUpdate
-from zymecycle.clarification import parse_clarification_context
-from zymecycle.dialogue_types import DialogueInput
-from zymecycle.meta import COMPLETION_ALLOWANCES, MAX_COMPLETION_TOKENS, valid_completion_allowance
-from zymecycle.privacy import credential_like, question_contains_private_input
-from zymecycle.research_session import ResearchSession, new_research_session, record_turn_status
-from zymecycle.runtime_config import DEFAULT_TURN_MODELS, DEFAULT_TURN_TOOLS, RuntimeLimits
-from zymecycle.ui_adapter import (
+from petzyme.agent_request import interpret_request
+from petzyme.agent_types import ToolUpdate
+from petzyme.clarification import parse_clarification_context
+from petzyme.dialogue_types import DialogueInput
+from petzyme.meta import COMPLETION_ALLOWANCES, MAX_COMPLETION_TOKENS, valid_completion_allowance
+from petzyme.privacy import credential_like, question_contains_private_input
+from petzyme.research_session import ResearchSession, new_research_session, record_turn_status
+from petzyme.runtime_config import DEFAULT_TURN_MODELS, DEFAULT_TURN_TOOLS, RuntimeLimits
+from petzyme.ui_adapter import (
     EXAMPLES,
     ROOT,
     ResearchView,
@@ -25,16 +24,16 @@ from zymecycle.ui_adapter import (
     run_offline,
     runtime_identity,
 )
-from zymecycle.ui_advisor import render_research_advice
-from zymecycle.ui_clarification import clear_clarification, render_clarification
-from zymecycle.ui_communication import render_communication
-from zymecycle.ui_dialogue import clear_live_dialogue, render_dialogue_result, render_live_dialogue
-from zymecycle.ui_findings import display_response, finding_answer, prioritize_limitations
-from zymecycle.ui_live import run_keychain_investigation
-from zymecycle.ui_multistudy import render_multi_study
-from zymecycle.ui_pazy import ARTICLE_DOI, PAZY_URL, discover_pazy_pet
-from zymecycle.ui_results import focus_result, render_result
-from zymecycle.ui_runtime import (
+from petzyme.ui_advisor import render_research_advice
+from petzyme.ui_clarification import clear_clarification, render_clarification
+from petzyme.ui_communication import render_communication
+from petzyme.ui_dialogue import clear_live_dialogue, render_dialogue_result, render_live_dialogue
+from petzyme.ui_findings import display_response, finding_answer, prioritize_limitations
+from petzyme.ui_live import run_keychain_investigation
+from petzyme.ui_multistudy import render_multi_study
+from petzyme.ui_pazy import ARTICLE_DOI, PAZY_URL, discover_pazy_pet
+from petzyme.ui_results import focus_result, render_result
+from petzyme.ui_runtime import (
     record_live_usage,
     remaining_limits,
     render_provider_usage,
@@ -42,7 +41,8 @@ from zymecycle.ui_runtime import (
     runtime_controls,
     submitted_limits,
 )
-from zymecycle.unit_context import unit_context
+from petzyme.unit_context import unit_context
+from scripts.launch_meta import credential_available
 
 
 def reset_result() -> None:
@@ -869,7 +869,7 @@ def main() -> None:
                 "For a conditional two-enzyme experiment, please state the available temperatures and maximum pH.")
     if st.session_state.get("unified_error"):
         st.error(st.session_state["unified_error"])
-    with st.form("ask_zymecycle", clear_on_submit=False):
+    with st.form("ask_petzyme", clear_on_submit=False):
         st.text_area("Research question", key="unified_question", max_chars=4000)
         st.form_submit_button("Ask PETzyme", on_click=queue_unified_turn, type="primary")
     st.caption("Muse is used when the secure credential is available; otherwise local tools run without paid inference. Results are not saved as history.")

@@ -1,8 +1,8 @@
 import json
 
-from zymecycle.agent_context import compact_model_evidence
-from zymecycle.agent_evidence import model_evidence, project_evidence
-from zymecycle.pet_evidence import investigate_pet_evidence
+from petzyme.agent_context import compact_model_evidence
+from petzyme.agent_evidence import model_evidence, project_evidence
+from petzyme.pet_evidence import investigate_pet_evidence
 
 
 def test_compact_context_retains_every_fact_id_value_warning_and_source():
