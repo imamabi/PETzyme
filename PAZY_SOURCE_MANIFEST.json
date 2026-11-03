@@ -1,0 +1,28 @@
+{
+  "source": "PAZy publication-derived polymer activity data",
+  "archive_page": "https://www.pazy.eu/activities/archive",
+  "version": "2026-10-27_113456_345688Z_6cd009d5",
+  "filename": "pazy_polymer_assays_2026-10-27_113456_345688Z_6cd009d5.json.gz",
+  "retrieval_url": "https://www.pazy.eu/downloads/archive/pazy_polymer_assays_2026-10-27_113456_345688Z_6cd009d5.json.gz",
+  "retrieved_at_utc": "2026-10-28T01:26:42.137015+00:00",
+  "local_archive": "data/pazy/pazy_polymer_assays_2026-10-27_113456_345688Z_6cd009d5.json.gz",
+  "compressed_bytes": 705230,
+  "uncompressed_bytes": 27421023,
+  "published_sha256": "123f058a6a5b34acbba0c1bc7f69d924098045cb9361141a13462c366295c363",
+  "verified_sha256": "123f058a6a5b34acbba0c1bc7f69d924098045cb9361141a13462c366295c363",
+  "official_manifest_url": "https://www.pazy.eu/downloads/pazy_polymer_assays_manifest.json",
+  "schema_version": "4.2",
+  "schema_template_url": "https://www.pazy.eu/downloads/pazy_polymer_assay_empty_template_v4_2.json",
+  "illustrative_example_policy": "Official example is documentation only, never production observations; no example values used in the audit.",
+  "validated_counts": {"parent_records": 639, "assays": 7740, "representative_assays": 645, "individual_measurements": 12201},
+  "citation": {
+    "attribution": "Feuerriegel et al. (2026), PAZy: an expanded and actively maintained database of experimentally validated plastic-active enzymes, Nucleic Acids Research.",
+    "doi": "10.1093/nar/gkag1026",
+    "url": "https://doi.org/10.1093/nar/gkag1026"
+  },
+  "license_status": "UNRESOLVED: no explicit activity-snapshot reuse license found in inspected official archive, manifest, activity/schema documentation or legal notice. Public access and the article license do not by themselves establish a dataset redistribution license.",
+  "license_review_url": "https://www.pazy.eu/legal-notice",
+  "provenance_scope": "PAZy-curated extraction of source-publication evidence; preserve cited publication DOI and assay evidence source/location separately from NREL original CSV cells.",
+  "storage_policy": "Only this raw versioned activity archive is authorized locally; Git-ignored, no derivative dataset copies or redistribution. Separate protein metadata, sequences and API responses remain live-only and unpersisted.",
+  "validation_status": "PASS: exact pinned SHA-256, published counts, v4.2 nested schema and original values/null fields preserved. Scientific comparability assessed separately."
+}

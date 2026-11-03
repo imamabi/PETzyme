@@ -1,0 +1,63 @@
+{
+  "checkpoint": "facebook/esm2_t12_35M_UR50D",
+  "revision": "6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+  "source_url": "https://huggingface.co/facebook/esm2_t12_35M_UR50D",
+  "license": "MIT",
+  "license_source": "Official checkpoint model-card metadata at pinned revision",
+  "attribution": "Meta AI / FAIR, ESM-2; Lin et al., Science (2023), doi:10.1126/science.ade2574",
+  "dimension": 480,
+  "layer": 12,
+  "pooling": "last_hidden_state_mean_residue_tokens",
+  "dtype": "float32",
+  "max_residues": 1022,
+  "length_policy": "Operational 1022-residue bound; add CLS/EOS; no truncation or chunking",
+  "local_directory": "models/esm2_t12_35M_UR50D/6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+  "downloaded_at_utc": "2026-10-27T16:49:27.275317+00:00",
+  "files": {
+    "config.json": {
+      "bytes": 778,
+      "sha256": "ae07364efa51e0fa1d81da3fe608f6d948abdbbb69785ba6e1df379a458e58ee",
+      "published_git_blob": "3f64131bb610ed1ce482c4b5421fc358c785278f",
+      "published_lfs_sha256": null
+    },
+    "model.safetensors": {
+      "bytes": 136008798,
+      "sha256": "e35647818e0e064351d4531ed480d225a002567b4b2b93ad3a9246d753150fc0",
+      "published_git_blob": "852e2c43f3071a5dbb7ccf8b5a4746fbb78e8791",
+      "published_lfs_sha256": "e35647818e0e064351d4531ed480d225a002567b4b2b93ad3a9246d753150fc0"
+    },
+    "special_tokens_map.json": {
+      "bytes": 125,
+      "sha256": "3aedcd4211c0d43aec4e607ff60a63255f3174ead795e997350f09a5f8cd9ee1",
+      "published_git_blob": "ba0f9b53dbbf27934f7555e5d31e37bdea9317f1",
+      "published_lfs_sha256": null
+    },
+    "tokenizer_config.json": {
+      "bytes": 95,
+      "sha256": "7e9161ecdb548ec45a41cbc6b24aa4476fdd418461f491c4207baa99419a29ad",
+      "published_git_blob": "3f0d47e841e1cb75257aeaf76d156802899a217e",
+      "published_lfs_sha256": null
+    },
+    "vocab.txt": {
+      "bytes": 93,
+      "sha256": "0b82cc0a7c7cf9e567b1e5892d793285b9fbae822c964ca48696f7db44598e03",
+      "published_git_blob": "6b946952cc35537226f07fd70957ee2f848880d2",
+      "published_lfs_sha256": null
+    }
+  },
+  "license_url": "https://huggingface.co/facebook/esm2_t12_35M_UR50D/blob/6fbf070e65b0b7291e7bbcd451118c216cff79d8/README.md",
+  "build_04_validation": {
+    "date_utc": "2026-10-27T17:05:23.386550+00:00",
+    "hardware": "Apple M1 Pro, 16 GiB",
+    "os": "macOS 14.6.1",
+    "architecture": "arm64",
+    "python": "3.11.0",
+    "torch": "2.8.0",
+    "transformers": "4.57.6",
+    "default_inference_device": "mps",
+    "real_cpu_inference": "PASS",
+    "float_dtype": "float32",
+    "same_device_reproducibility_absolute_tolerance": 1e-05,
+    "note": "Historical validation metadata; each embedding records its actual execution device/fallback."
+  }
+}
