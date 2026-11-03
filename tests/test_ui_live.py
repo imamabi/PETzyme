@@ -25,14 +25,14 @@ def test_no_launch_or_keychain_without_explicit_authorization(monkeypatch):
     assert ui_live.run_keychain_investigation('>PRIVATE_SEQUENCE', authorized=True)['status'] == 'ERROR'
 
 
-def test_live_launch_fixed_command_no_ambient_secret_and_public_protocol(monkeypatch):
+def test_live_launch_fixed_command_environment_credential_and_public_protocol(monkeypatch):
     safe = run_offline(EXAMPLES['Temperature evidence'])
     update = safe['result']['progress'][0]
     output = (json.dumps({'update':update})+'\n'+json.dumps({'result':safe})+'\n').encode()
     calls = []
     def fake(command, **kwargs):
         calls.append((command, kwargs))
-        assert 'MODEL_API_KEY' not in kwargs['env']
+        assert kwargs['env']['MODEL_API_KEY'] == 'synthetic-parent-credential'
         assert kwargs['stderr'] is ui_live.subprocess.DEVNULL
         return FakeProcess(output)
     monkeypatch.setenv('MODEL_API_KEY', 'synthetic-parent-credential')
@@ -43,6 +43,34 @@ def test_live_launch_fixed_command_no_ambient_secret_and_public_protocol(monkeyp
     assert len(calls) == 1
     assert calls[0][0] == [sys.executable,'-m','scripts.launch_meta','--authorize-paid-meta','--',sys.executable,'-m','zymecycle.ui_live','--live-worker']
     assert 'synthetic-parent-credential' not in json.dumps(result)
+
+
+def test_windows_pipe_path_preserves_public_worker_protocol(monkeypatch):
+    safe = run_offline(EXAMPLES['Temperature evidence'])
+    output = (json.dumps({'result': safe}) + '\n').encode()
+    monkeypatch.setattr(ui_live.subprocess, 'Popen', lambda *args, **kwargs: FakeProcess(output))
+    monkeypatch.setattr(ui_live.sys, 'platform', 'win32')
+    result = ui_live.run_keychain_investigation(EXAMPLES['Temperature evidence'], authorized=True)
+    assert result == safe
+
+
+def test_unified_app_routes_environment_credential_without_exposing_it(monkeypatch):
+    from pathlib import Path
+    from streamlit.testing.v1 import AppTest
+
+    calls = []
+    def fake_live(question, **kwargs):
+        calls.append(question)
+        return run_offline(question)
+    monkeypatch.delenv('PETZYME_OFFLINE', raising=False)
+    monkeypatch.setenv('MODEL_API_KEY', 'synthetic-app-only-key')
+    monkeypatch.setattr('scripts.launch_meta.keychain_item_present', lambda: False)
+    monkeypatch.setattr(ui_live, 'run_keychain_investigation', fake_live)
+    app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / 'streamlit_app.py'), default_timeout=60).run()
+    app.text_area(key='unified_question').input('Investigate ESM050 PET experimental evidence.')
+    app.button(key='FormSubmitter:ask_zymecycle-Ask PETzyme').click().run(timeout=60)
+    assert not app.exception and len(calls) == 1
+    assert 'synthetic-app-only-key' not in str(app)
 
 
 @pytest.mark.parametrize('output,code', [(b'',1),(b'not json\n',0),(b'{"result":"invalid"}\n',0),

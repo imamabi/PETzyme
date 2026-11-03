@@ -1,15 +1,17 @@
-"""One authorized Keychain child per live investigation; Streamlit never receives credentials."""
+"""One authorized credential-bearing child per live investigation."""
 
 from __future__ import annotations
 
 import json
 import math
 import os
+import queue
 import re
 import selectors
 import signal
 import subprocess
 import sys
+import threading
 import time
 from typing import Callable, cast
 
@@ -74,10 +76,10 @@ def run_keychain_investigation(
     cohort_window: ExperimentalWindow | None = None,
     context_turns: list[str] | None = None,
 ) -> ToolResult[ResearchView]:
-    """Run one live investigation in a Keychain-authorized child process.
+    """Run one live investigation in an authorized child process.
 
-    Purpose: Streamlit itself never touches credentials: it spawns the
-        existing Keychain launcher as a subprocess, sends the bounded
+    Purpose: Streamlit spawns the existing credential launcher as a subprocess,
+        sends the bounded
         question JSON over stdin, and reads back public ToolUpdate /
         result JSON lines. Each submission needs a fresh explicit
         authorization; without it, nothing runs even if a key exists.
@@ -158,7 +160,9 @@ def run_keychain_investigation(
         "zymecycle.ui_live",
         "--live-worker",
     ]
-    environment = {k: v for k, v in os.environ.items() if k != "MODEL_API_KEY"}
+    # The fixed local launcher receives the process credential when supplied;
+    # it selects Keychain first on macOS and forwards it only to the worker.
+    environment = dict(os.environ)
     environment.update(
         PYTHONDONTWRITEBYTECODE="1", HF_HUB_OFFLINE="1", HF_HUB_DISABLE_TELEMETRY="1"
     )
@@ -174,7 +178,7 @@ def run_keychain_investigation(
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
-            start_new_session=True,
+            start_new_session=sys.platform != "win32",
         )
         if process.stdin is None or process.stdout is None:
             raise ValueError("Worker pipes are unavailable")
@@ -233,13 +237,32 @@ def run_keychain_investigation(
         )
         result = None
         with selectors.DefaultSelector() as selector:
-            selector.register(process.stdout, selectors.EVENT_READ)
+            chunks: queue.Queue[bytes] = queue.Queue(maxsize=2)
+            if sys.platform == "win32":
+                def read_pipe() -> None:
+                    try:
+                        while True:
+                            data = os.read(process.stdout.fileno(), 8192)
+                            chunks.put(data)
+                            if not data:
+                                return
+                    except OSError:
+                        chunks.put(b"")
+                threading.Thread(target=read_pipe, daemon=True).start()
+            else:
+                selector.register(process.stdout, selectors.EVENT_READ)
             while True:
                 if time.monotonic() > deadline:
                     raise ValueError("Worker deadline reached")
-                if not selector.select(timeout=0.25):
-                    continue
-                chunk = os.read(process.stdout.fileno(), 8192)
+                if sys.platform == "win32":
+                    try:
+                        chunk = chunks.get(timeout=0.25)
+                    except queue.Empty:
+                        continue
+                else:
+                    if not selector.select(timeout=0.25):
+                        continue
+                    chunk = os.read(process.stdout.fileno(), 8192)
                 if not chunk:
                     break
                 received += len(chunk)
@@ -294,14 +317,26 @@ def run_keychain_investigation(
         if process is not None:
             if process.poll() is None:
                 try:
-                    os.killpg(process.pid, signal.SIGTERM)
+                    if sys.platform == "win32":
+                        system_root = os.environ.get("SystemRoot", r"C:\Windows")
+                        taskkill = os.path.join(system_root, "System32", "taskkill.exe")
+                        subprocess.run([taskkill, "/PID", str(process.pid), "/T", "/F"],
+                                       stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                                       stderr=subprocess.DEVNULL, timeout=5, check=False)
+                    else:
+                        os.killpg(process.pid, signal.SIGTERM)
                 except ProcessLookupError:
                     pass
+                except (OSError, subprocess.TimeoutExpired):
+                    process.terminate()
                 try:
                     process.wait(timeout=5)
                 except subprocess.TimeoutExpired:
                     try:
-                        os.killpg(process.pid, signal.SIGKILL)
+                        if sys.platform == "win32":
+                            process.kill()
+                        else:
+                            os.killpg(process.pid, signal.SIGKILL)
                     except ProcessLookupError:
                         pass
                     process.wait(timeout=5)

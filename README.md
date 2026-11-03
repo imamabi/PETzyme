@@ -140,14 +140,60 @@ PETZYME_OFFLINE=1 HF_HUB_OFFLINE=1 \
 
 Open **http://127.0.0.1:8501** in your browser.
 
-For live Meta Muse execution on macOS, configure the application's login-Keychain credential:
+Omit `PETZYME_OFFLINE=1` to allow Muse when a
+credential is available. On macOS, the existing login-Keychain item takes
+precedence: enter it directly in Keychain Access using service
+`zymecycle-meta-api` and account `zymecycle`. If no valid Keychain credential
+is available, the launcher uses `MODEL_API_KEY` from its process environment.
+The same environment route is available on Linux and Windows. Never enter the
+key in PETzyme's question box or save it in source, `.env`, logs or chat.
 
-- **Service:** `zymecycle-meta-api`
-- **Account:** `zymecycle`
+For macOS or Linux, a temporary shell session can read the key without echoing
+it (Bash; do not put the actual key in the command or shell history):
 
-Then launch without `PETZYME_OFFLINE=1`.
+```sh
+read -r -s MODEL_API_KEY; export MODEL_API_KEY; printf '\n'
+.venv/bin/python -m streamlit run streamlit_app.py
+unset MODEL_API_KEY
+```
 
-The launcher supplies the credential to the worker process. API keys should never be stored in source files or committed to Git. Live inference requires access to Meta's Model API and may incur usage charges.
+For Windows PowerShell, the following reads the key with masked input and keeps
+it in the current process environment until the session ends:
+
+```powershell
+$secure = Read-Host 'Meta API key' -AsSecureString
+$ptr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
+try { $env:MODEL_API_KEY = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr) }
+finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr); Remove-Variable secure,ptr }
+.venv\Scripts\python.exe -m streamlit run streamlit_app.py
+Remove-Item Env:MODEL_API_KEY
+```
+
+Environment variables are inherited by child processes and may be visible to
+other processes with sufficient access; use an appropriate secret manager and
+avoid shared or untrusted environments. The key is forwarded to the existing
+local worker, and that worker sends it only to the configured Meta API. Without
+a usable key, the UI provides labelled deterministic local results. Live
+inference uses external Meta services and may incur usage charges.
+
+macOS on Apple Silicon with Python 3.11 has been exercised locally. Linux and
+Windows credential and worker branches have automated simulations, but native
+installation, startup and model inference on those platforms have not yet
+been verified. Install the existing pinned dependencies in a Python 3.11+
+virtual environment using platform-compatible packages; platform-specific
+PyTorch availability and local data/model setup may require separate review.
+For Windows PowerShell, the corresponding environment setup is:
+
+```powershell
+py -3.11 -m venv .venv
+.venv\Scripts\python.exe -m pip install 'httpx==0.28.1' 'streamlit==1.66.1' 'pytest==9.1.1'
+# For the ESM-2 capability and full test collection:
+.venv\Scripts\python.exe -m pip install 'torch==2.8.0' 'transformers==4.57.6'
+```
+
+The one-shot `scripts.research_agent` CLI can also read `MODEL_API_KEY` from its
+own environment when explicitly authorized; use an appropriate secret manager
+for your operating system.
 
 ## Testing
 

@@ -59,11 +59,48 @@ def test_live_child_only_receives_key_in_environment(monkeypatch, capsys):
 
 @pytest.mark.parametrize('output', [None, b'', b'bad\nheader', b'bad key', b'\xff'])
 def test_missing_or_invalid_credential_never_launches_child(monkeypatch, capsys, output):
+    monkeypatch.delenv('MODEL_API_KEY', raising=False)
     result = None if output is None else subprocess.CompletedProcess([], 0, stdout=output)
     monkeypatch.setattr(launch_meta, '_lookup', lambda _: result)
     monkeypatch.setattr(launch_meta.subprocess, 'run', lambda *a, **k: pytest.fail('Child launched'))
     assert launch_meta.launch_live(['python', '-m', 'scripts.research_agent']) == 1
-    assert capsys.readouterr().err == 'Keychain credential unavailable; no live child was launched.\n'
+    assert capsys.readouterr().err == 'Meta credential unavailable; no live child was launched.\n'
+
+
+@pytest.mark.parametrize('platform', ['darwin', 'linux', 'win32'])
+def test_environment_credential_reaches_only_authorized_child(monkeypatch, capsys, platform):
+    monkeypatch.setattr(launch_meta.sys, 'platform', platform)
+    monkeypatch.setenv('MODEL_API_KEY', 'SYNTHETIC_ENVIRONMENT_KEY')
+    monkeypatch.setattr(launch_meta, '_lookup', lambda _: None)
+    seen = []
+    def run(command, **kwargs):
+        assert 'SYNTHETIC_ENVIRONMENT_KEY' not in command
+        assert kwargs['env']['MODEL_API_KEY'] == 'SYNTHETIC_ENVIRONMENT_KEY'
+        seen.append(kwargs['env'])
+        return subprocess.CompletedProcess(command, 0)
+    monkeypatch.setattr(launch_meta.subprocess, 'run', run)
+    assert launch_meta.credential_available()
+    assert launch_meta.launch_live(['python', '-m', 'zymecycle.ui_live']) == 0
+    assert 'MODEL_API_KEY' not in seen[0]
+    assert 'SYNTHETIC_ENVIRONMENT_KEY' not in str(capsys.readouterr())
+
+
+@pytest.mark.parametrize('value', ['', 'bad key', 'bad\nkey'])
+def test_invalid_environment_credential_does_not_launch(monkeypatch, value):
+    monkeypatch.setenv('MODEL_API_KEY', value)
+    monkeypatch.setattr(launch_meta, '_lookup', lambda _: None)
+    monkeypatch.setattr(launch_meta.subprocess, 'run', lambda *a, **k: pytest.fail('Child launched'))
+    assert not launch_meta.credential_available()
+    assert launch_meta.launch_live(['python']) == 1
+
+
+def test_environment_credential_crosses_real_launcher_child_boundary(monkeypatch, capsys):
+    import sys
+    monkeypatch.setattr(launch_meta, '_lookup', lambda _: None)
+    monkeypatch.setenv('MODEL_API_KEY', 'SYNTHETIC_ENVIRONMENT_KEY')
+    child_code = "import os,sys; sys.exit(0 if os.environ.get('MODEL_API_KEY') == 'SYNTHETIC_ENVIRONMENT_KEY' else 1)"
+    assert launch_meta.launch_live([sys.executable, '-c', child_code]) == 0
+    assert 'SYNTHETIC_ENVIRONMENT_KEY' not in str(capsys.readouterr())
 
 
 @pytest.mark.parametrize('error', [OSError('PRIVATE'), subprocess.TimeoutExpired('security', 60, output=b'PRIVATE')])

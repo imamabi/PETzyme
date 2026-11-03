@@ -113,7 +113,7 @@ socket.socket.connect=blocked
 import subprocess
 spec=importlib.util.spec_from_file_location('scripts._real_launch_meta',ROOT/'scripts/launch_meta.py')
 module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
-assert 'MODEL_API_KEY' not in os.environ
+assert os.environ.get('MODEL_API_KEY') == 'synthetic-parent-must-not-forward'
 module._lookup=lambda password:subprocess.CompletedProcess([],0,b'synthetic-child-only\\n')
 raise SystemExit(module.main())
 """
@@ -143,7 +143,7 @@ raise SystemExit(module.worker_main())
 
     def observe(command, **kwargs):
         commands.append(command)
-        assert "MODEL_API_KEY" not in kwargs["env"]
+        assert kwargs["env"]["MODEL_API_KEY"] == "synthetic-parent-must-not-forward"
         return popen(command, **kwargs)
 
     monkeypatch.setattr(ui_live.subprocess, "Popen", observe)

@@ -111,7 +111,7 @@ socket.socket.connect=blocked
 import subprocess
 spec=importlib.util.spec_from_file_location('scripts._real_launch_meta',ROOT/'scripts/launch_meta.py')
 module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
-assert 'MODEL_API_KEY' not in os.environ
+assert os.environ.get('MODEL_API_KEY') == 'synthetic-parent-must-be-removed'
 module._lookup=lambda password:subprocess.CompletedProcess([],0,b'synthetic-child-only\\n')
 raise SystemExit(module.main())
 ''')

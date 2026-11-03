@@ -8,7 +8,7 @@ from typing import Literal, TypedDict
 
 import streamlit as st
 
-from scripts.launch_meta import keychain_item_present
+from scripts.launch_meta import credential_available
 from zymecycle.agent_request import interpret_request
 from zymecycle.agent_types import ToolUpdate
 from zymecycle.clarification import parse_clarification_context
@@ -498,7 +498,7 @@ def legacy_main() -> None:
                 "Muse selects scientific tools. Explicit authorization and a new Investigate action are required for each investigation."
             )
             st.caption(
-                "Credentials are retrieved by the existing macOS Keychain launcher only after authorization. No key entry is needed here."
+                "Credentials come from macOS Keychain or the process environment. No key entry is needed here."
             )
         elif mode == "Live Muse dialogue":
             st.info(
@@ -674,7 +674,7 @@ def legacy_main() -> None:
 def queue_unified_turn() -> None:
     """Flow: Receives external submission widgets; returns None after queuing one privacy-checked turn for main()."""
     epoch = st.session_state.get("unified_epoch", 0)
-    authorized = os.environ.get("PETZYME_OFFLINE") != "1" and keychain_item_present()
+    authorized = os.environ.get("PETZYME_OFFLINE") != "1" and credential_available()
     st.session_state["unified_epoch"] = epoch + 1
     text = st.session_state.pop("unified_question", "")
     st.session_state["unified_question"] = ""

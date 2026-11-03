@@ -1,11 +1,11 @@
-"""Launch one explicitly authorized child with a transient login-Keychain credential."""
+"""Launch one authorized child using Keychain or a process environment credential."""
 from __future__ import annotations
 
 import argparse
 import os
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
 
 SERVICE = 'zymecycle-meta-api'
 ACCOUNT = 'zymecycle'
@@ -38,6 +38,16 @@ def keychain_item_present() -> bool:
     return result is not None and result.returncode == 0
 
 
+def credential_available() -> bool:
+    """Flow: Receives process configuration from queue_unified_turn(); returns bool for live routing without exposing the credential."""
+    return _valid_credential(os.environ.get('MODEL_API_KEY', '')) or keychain_item_present()
+
+
+def _valid_credential(value: str) -> bool:
+    """Check that a credential is suitable for an HTTP authorization header."""
+    return bool(value) and all(33 <= ord(char) <= 126 for char in value)
+
+
 def launch_live(command: list[str]) -> int:
     """Flow: Receives an authorized trusted child command list[str] from main(); returns its final exit status int after transient credential injection."""
     if not command or not all(isinstance(arg, str) and arg for arg in command):
@@ -49,8 +59,10 @@ def launch_live(command: list[str]) -> int:
             credential = result.stdout.decode('ascii').rstrip('\r\n')
         except UnicodeDecodeError:
             pass
-    if not credential or any(not 33 <= ord(char) <= 126 for char in credential):
-        print('Keychain credential unavailable; no live child was launched.', file=sys.stderr)
+    if not _valid_credential(credential):
+        credential = os.environ.get('MODEL_API_KEY', '')
+    if not _valid_credential(credential):
+        print('Meta credential unavailable; no live child was launched.', file=sys.stderr)
         return 1
     environment = _environment()
     environment['MODEL_API_KEY'] = credential
