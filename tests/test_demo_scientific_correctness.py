@@ -174,3 +174,80 @@ def test_multiturn_goals_keep_source_subject_and_constraints():
     for view, code in [(outputs[3], 'VERIFY_RECORDED_ZERO'), (outputs[4], 'REPLICATE_POSITIVE_RESPONSE')]:
         assert any(a['code'] == code for a in view['plan']['recommendations'])
         assert not view['observations']
+
+
+@pytest.mark.parametrize('enzyme,source', [('ESM050', 'PAZy'), ('DP043', 'NREL')])
+def test_historical_followup_preserves_subject_source_and_separate_lab_limits(enzyme, source):
+    from petzyme.agent_request import contextualize_request
+
+    session = new_research_session()
+    questions = [f'Investigate {enzyme} using NREL and PAZy.', f'Show {source} evidence only.',
+                 'What should I test next if my laboratory supports only 40C and pH 7 or lower?',
+                 'Please replicate a documented positive response.']
+    for question in questions:
+        session, result, _ = dispatch_research_turn(session, question, run_offline)
+        assert result['result'] is not None
+    current = 'What were the published results at 60C?'
+    request = contextualize_request(current, list(session.active_questions))
+    assert request['enzyme_identifiers'] == [enzyme] and request['sources'] == [source]
+    assert request['temperatures'] == [60.0]
+    assert request['window']['maximum_ph'] is None
+    session, result, _ = dispatch_research_turn(session, current, run_offline)
+    assert result['result'] is not None
+    assert session.enzyme_identifiers == (enzyme,) and session.sources == (source,)
+    assert session.available_temperatures_c == (40.0,) and session.maximum_ph == 7.0
+    assert result['result']['synthesis']['status'] == 'VALIDATED_FACT_SELECTION'
+    assert all(o['enzyme_identifier'] == enzyme and o['temperature_c'] == 60 for o in result['result']['observations'])
+    receipts = {r['source']: r['status'] for r in result['result']['source_coverage']}
+    assert receipts['NREL' if source == 'PAZy' else 'PAZy'] == 'EXCLUDED'
+    if source == 'PAZy':
+        coverage = result['result']['multi_study']['accumulation']['condition_coverage']
+        assert all(c['enzyme_identifier'] == enzyme for c in coverage['missing_conditions'])
+        assert 'enzyme_identifier' not in coverage['unspecified_fields']
+
+
+def test_incomplete_unrelated_result_cannot_escape_subject_guard():
+    session, result, _ = dispatch_research_turn(new_research_session(), 'Investigate ESM050.', run_offline)
+    assert result['result']
+    wrong = run_offline('Show NREL evidence for DP043 at 60C.')
+    assert wrong['result'] and wrong['result']['observations']
+    wrong['result']['synthesis'] = {'status': 'INCOMPLETE', 'reason_code': 'REQUIRED_INVESTIGATION_STEP_MISSING'}
+    unchanged, rejected, _ = dispatch_research_turn(session, 'What were the published results at 60C?', run_offline,
+                                                     context_runner=lambda question, active: wrong)
+    assert unchanged == session and rejected['status'] == 'ERROR' and rejected['result'] is None
+    assert 'did not match' in rejected['message']
+
+
+def test_known_lab_limits_are_not_reasked_and_concrete_candidate_is_first():
+    from petzyme.ui_findings import result_overview
+
+    result = advise_next_experiment('ESM050', source_scope='PAZY_ONLY', request_window=WINDOW,
+                                    planning_goal='VERIFY_POSITIVE')
+    actions = result['result']['plan_result']['result']['recommendations']
+    clarify = next(a['proposed_action'] for a in actions if a['code'] == 'DEFINE_LABORATORY_WINDOW')
+    assert 'available temperatures' not in clarify and 'pH bounds' not in clarify
+    session = new_research_session()
+    for question in ('Investigate ESM050.', 'Show PAZy evidence only.',
+                     'What should I test next if my laboratory supports only 40C and pH 7 or lower?',
+                     'Please replicate a documented positive response.'):
+        session, out, _ = dispatch_research_turn(session, question, run_offline)
+    overview = result_overview(out['result'])
+    assert overview.steps[0].is_experiment and '40°C' in overview.steps[0].text
+    assert 'UNKNOWN' in overview.steps[0].label and 'confirming' in overview.steps[0].text
+
+
+def test_single_subject_historical_pazy_catalog_rejects_unscoped_or_wrong_tool_arguments():
+    from petzyme.agent_request import contextualize_request
+    from petzyme.tools import validate_arguments
+
+    request = contextualize_request('What were the published results at 60C?',
+        ['Investigate DP043 using NREL and PAZy.', 'Show PAZy evidence only.',
+         'My laboratory supports only 40C and pH 7 or lower.'])
+    schema = next(t['function']['parameters'] for t in select_tool_catalog(request)
+                  if t['function']['name'] == 'investigate_pet_evidence')
+    valid = {'query': {'protein_name': 'DP043', 'temperature_c': 60.0}, 'source_scope': 'PAZY_ONLY'}
+    assert validate_arguments(valid, schema)
+    assert not validate_arguments({'source_scope': 'PAZY_ONLY'}, schema)
+    assert not validate_arguments({'query': {'temperature_c': 60.0}, 'source_scope': 'PAZY_ONLY'}, schema)
+    assert not validate_arguments({'query': {'protein_name': 'ESM050', 'temperature_c': 60.0}, 'source_scope': 'PAZY_ONLY'}, schema)
+    assert not validate_arguments({'query': {'protein_name': 'DP043', 'temperature_c': 40.0}, 'source_scope': 'PAZY_ONLY'}, schema)

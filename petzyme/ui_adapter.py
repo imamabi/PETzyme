@@ -337,7 +337,8 @@ def local_research_plan(request: ResearchRequest) -> list[tuple[str, dict]]:
 
 def present_investigation(
     result: ToolResult[ResearchReport], updates: list[ToolUpdate],
-    *, coverage_question: str | None = None, comparison_questions: tuple[str, str] | None = None,
+    *, coverage_question: str | None = None, coverage_context: list[str] | None = None,
+    comparison_questions: tuple[str, str] | None = None,
     comparison_pazy_only: bool = False,
     comparison_scopes: tuple[bool, bool] | None = None,
 ) -> ToolResult[ResearchView]:
@@ -514,7 +515,7 @@ def present_investigation(
             view["limitations"].append(
                 f"{len(multi_study_runs) - MAX_RUNS} executed multi-study component previews omitted from the display union; canonical selection still covers every executed required source fact."
             )
-        coverage_request = interpret_request(coverage_question or report["question"])
+        coverage_request = contextualize_request(coverage_question or report["question"], coverage_context or [])
         labels = [u["data"].get("cohort_label") for u in updates
                   if u["call_id"].startswith("cohort_") and u["data"].get("cohort_label") is not None]
         if labels and all(isinstance(label, str) for label in labels):
@@ -666,6 +667,7 @@ def investigate_with_backend(
         coverage_question = (question if current["temperatures"] or current["ph_values"] or current["pet_forms"]
                              else cohort_filter or question)
     presented = present_investigation(result, updates, coverage_question=coverage_question,
+                                       coverage_context=context_turns if not cohort_origin else None,
                                        comparison_questions=cohort_compare_filters,
                                        comparison_pazy_only=cohort_pazy_only,
                                        comparison_scopes=cohort_compare_scopes)
@@ -1008,8 +1010,14 @@ def dispatch_research_turn(
     subjectless_planning = bool({"experiment_advice", "exploratory_planning"} & set(current_request["objectives"])) and not current_request["enzyme_identifiers"]
     if subjectless_planning and not session.enzyme_identifiers and not session.discovery_replayable:
         return session, _research_notice("NO_DATA", "Please identify the enzyme before requesting an experimental plan."), False
+    historical_followup = bool(
+        session.active_questions and session.enzyme_identifiers
+        and not current_request["enzyme_identifiers"]
+        and (current_request["temperatures"] or current_request["ph_values"] or current_request["pet_forms"])
+        and re.search(r"\b(?:tested|measured|observed|recorded|historical|evidence|published|results)\b", text, re.IGNORECASE)
+    )
     source_followup = sequence_followup or bool(session.active_questions and not current_request["enzyme_identifiers"]
-                           and (subjectless_planning or re.search(r"\b(?:pazy|nrel|both sources)\b", text, re.IGNORECASE)))
+                           and (subjectless_planning or historical_followup or re.search(r"\b(?:pazy|nrel|both sources)\b", text, re.IGNORECASE)))
     updated, question, followup = prepare_research_turn(session, text, source_followup=source_followup)
     if followup and context_runner is None and runner is not run_offline:
         return session, _research_notice("ERROR", _CONTEXT_RUNNER_REQUIRED), False

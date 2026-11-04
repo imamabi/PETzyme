@@ -221,7 +221,7 @@ def assess_scientific_scope(request: RequestScope, evidence: EvidenceScope) -> S
     if planning:
         explanations.append(
             "Exploratory experiment planning is not a quantitative comparison. Confirm the intended "
-            "substrate/PET form, available temperatures, pH bounds and measurement objective before "
+            "substrate/PET form, remaining laboratory requirements and measurement objective before "
             "choosing candidate conditions. A highest recorded response in a documented condition "
             "group is distinct from a HYPOTHETICAL next experiment and an experimentally established "
             "optimum; no optimum or activity superiority is established here."

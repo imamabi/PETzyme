@@ -119,6 +119,11 @@ def _visible_plan_steps(value: object) -> list[DisplayStep]:
         return steps[:VISIBLE_ACTIONS]
     experiments = [i for i, action in enumerate(value.get("recommendations", []))
                    if action.get("category") == "PROPOSED_EXPERIMENT"]
+    targeted = [i for i in experiments if value["recommendations"][i].get("code") in
+                ("VERIFY_RECORDED_ZERO", "REPLICATE_POSITIVE_RESPONSE", "EXPLORE_UNRECORDED_CONDITION")]
+    if targeted:
+        first = targeted[0]
+        return [steps[first], *[step for i, step in enumerate(steps) if i != first]][:VISIBLE_ACTIONS]
     if experiments and experiments[0] >= VISIBLE_ACTIONS:
         return steps[:VISIBLE_ACTIONS - 1] + [steps[experiments[0]]]
     return steps[:VISIBLE_ACTIONS]

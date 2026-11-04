@@ -363,9 +363,17 @@ def _coverage_advice(
         "VERIFY_IDENTITY_AND_ASSAY",
         "Verify the source-listed construct, original publication/worksheet linkage, measurement definition and inferred versus reported units. Shared-study curation is not independent replication.",
     )
+    missing_window = []
+    if request_window is None or not request_window['pet_forms']:
+        missing_window.append('PET form')
+    if request_window is None or not request_window['temperatures_c']:
+        missing_window.append('available temperatures')
+    if request_window is None or (request_window['minimum_ph'] is None and request_window['maximum_ph'] is None and not request_window['ph_values']):
+        missing_window.append('pH bounds')
+    missing_window.extend(['duration/endpoint', 'resources'])
     add(
         "DEFINE_LABORATORY_WINDOW",
-        "Confirm PET form, available temperatures, pH bounds, duration/endpoint and resources. "
+        "Confirm " + ', '.join(missing_window) + ". "
         + ("Specify whether to verify a zero, replicate a positive response, compare conditions or explore an untested condition. "
            if planning_goal == 'UNSPECIFIED' else "Confirm source assay and laboratory feasibility before the requested measurement. ")
         + "No established optimum is identified.",

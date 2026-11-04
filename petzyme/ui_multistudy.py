@@ -63,11 +63,19 @@ def render_multi_study(view: ResearchView) -> None:
     if aggregate:
         coverage=aggregate['condition_coverage']
         st.markdown('#### Missing evidence and condition coverage')
-        st.text(f"Actual NREL requested-condition targets retrieved: {coverage['covered']} / {coverage['requested']}; complete: {coverage['complete']}.")
-        st.caption(coverage['basis'])
-        if coverage['unspecified_fields']: st.text('Unspecified constraints: '+str(coverage['unspecified_fields'])+'; this is not exhaustive experimental coverage.')
-        for target in coverage['missing_conditions']: st.text('Missing requested target: '+str(target))
-        if coverage['unlisted_conditions']: st.text('Additional targets not listed: '+str(coverage['unlisted_conditions']))
+        nrel_excluded = any(receipt['source'] == 'NREL' and receipt['status'] == 'EXCLUDED'
+                            for receipt in view.get('source_coverage', []))
+        if nrel_excluded:
+            st.text('NREL condition coverage was not assessed because NREL was excluded.')
+        else:
+            st.text(f"Actual NREL requested-condition targets retrieved: {coverage['covered']} / {coverage['requested']}; complete: {coverage['complete']}.")
+            st.caption(coverage['basis'])
+            if coverage['unspecified_fields']:
+                st.text('Unspecified constraints: '+str(coverage['unspecified_fields'])+'; this is not exhaustive experimental coverage.')
+            for target in coverage['missing_conditions']:
+                st.text('Missing requested target: '+str(target))
+            if coverage['unlisted_conditions']:
+                st.text('Additional targets not listed: '+str(coverage['unlisted_conditions']))
         if aggregate['source_conflicts']: st.error('Conflicting source representations: '+str(aggregate['source_conflicts'])+'; no reconciliation or pooling performed.')
         with st.expander('Coverage by executed scientific call'):
             for i,call in enumerate(aggregate['calls'],1):

@@ -370,7 +370,7 @@ def contextualize_request(question: str, previous_turns: list[str]) -> ResearchR
                                             "maximum_ph": None, "pet_forms": []}
     laboratory_window = None
     lab_cues = r"\b(?:equipment|device|can only|only run|supports|can maintain|cannot exceed|maximum\s+pH|minimum\s+pH)\b"
-    historical_cues = r"\b(?:tested|measured|observed|recorded|historical|evidence)\b"
+    historical_cues = r"\b(?:tested|measured|observed|recorded|historical|evidence|published|results)\b"
 
     def merge_laboratory(previous: ExperimentalWindow | None, incoming: ExperimentalWindow) -> ExperimentalWindow:
         if previous is None:
@@ -390,7 +390,7 @@ def contextualize_request(question: str, previous_turns: list[str]) -> ResearchR
         if parsed["objectives"]:
             objectives = parsed["objectives"].copy()
         elif ((parsed["temperatures"] or parsed["ph_values"] or parsed["pet_forms"]) and
-              re.search(r"\b(?:tested|measured|observed|recorded|historical|evidence)\b", raw, re.IGNORECASE)):
+              re.search(r"\b(?:tested|measured|observed|recorded|historical|evidence|published|results)\b", raw, re.IGNORECASE)):
             objectives = ["multi_study"]
         if re.search(r"\bboth sources\b", raw, re.IGNORECASE):
             sources = ["NREL", "PAZy"]
@@ -412,7 +412,7 @@ def contextualize_request(question: str, previous_turns: list[str]) -> ResearchR
     if current["objectives"]:
         objectives = current["objectives"].copy()
     elif ((current["temperatures"] or current["ph_values"] or current["pet_forms"]) and
-          re.search(r"\b(?:tested|measured|observed|recorded|historical|evidence)\b", question, re.IGNORECASE)):
+          re.search(r"\b(?:tested|measured|observed|recorded|historical|evidence|published|results)\b", question, re.IGNORECASE)):
         objectives = ["multi_study"]
     elif ((current["temperatures"] or current["ph_values"] or current["pet_forms"]) and
           {"experiment_advice", "exploratory_planning"} & set(objectives) and
@@ -674,6 +674,19 @@ def select_tool_catalog(request: ResearchRequest) -> list[dict]:
                         properties.pop(condition, None)
                         schema['required'] = [k for k in schema['required'] if k != condition]
         if name == "investigate_pet_evidence":
+            # A single-subject historical query must not execute against an
+            # unfiltered source or substitute another researcher subject.
+            if (len(request['enzyme_identifiers']) == 1 and len(request['temperatures']) == 1
+                    and request['sources'] == ['PAZy'] and 'multi_study' in goals):
+                query_schema = properties['query']['anyOf'][0]
+                query_schema['required'] = ['protein_name', 'temperature_c']
+                query_schema['properties']['protein_name']['enum'] = request['enzyme_identifiers'].copy()
+                query_schema['properties']['temperature_c']['minimum'] = request['temperatures'][0]
+                query_schema['properties']['temperature_c']['maximum'] = request['temperatures'][0]
+                properties['query']['anyOf'] = [query_schema]
+                properties['query'].pop('default', None)
+                if 'query' not in schema['required']:
+                    schema['required'].append('query')
             properties["limit"].update(
                 minimum=1,
                 maximum=MAX_ASSAYS,
