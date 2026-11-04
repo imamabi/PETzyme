@@ -149,6 +149,10 @@ def execute_tool_call(call: dict, state: AgentState, catalog: list[dict]) -> Too
                     )
                 resolved["optional_constraints"] = state.researcher_constraints
                 if name == 'advise_next_experiment':
+                    supplied_goal = resolved.pop('planning_goal', None)
+                    if supplied_goal is not None and supplied_goal != state.planning_goal:
+                        raise ValueError('Only the researcher-derived planning goal may be relayed')
+                    resolved['planning_goal'] = state.planning_goal
                     resolved['request_window'] = state.request_window
             if name == "get_pazy_metadata":
                 error_code = 'REFERENCE_LINEAGE'

@@ -5,11 +5,30 @@ from __future__ import annotations
 import math
 import re
 
-from .contracts import Condition, ExperimentalWindow, PetForm
+from .contracts import Condition, ExperimentalWindow, PetForm, PlanningGoal
 
 TEMPERATURE = r"(?<![A-Za-z0-9_])(-?\d+(?:\.\d+)?)\s*(?:°\s*C|degrees?\s*C|celsius|C)\b"
 MAX_PH = r"(?:max(?:imum)?\s+pH\s*(?:is|of|=|:)?\s*|pH\s*(?:<=|≤|(?:cannot|must\s+not|does\s+not)\s+exceed)\s*|(?:cannot\s+(?:operate\s+)?(?:above|exceed)\s+pH\s*))(\d+(?:\.\d+)?)|pH\s*(\d+(?:\.\d+)?)\s*(?:or\s+(?:below|less|lower)|maximum)"
 MIN_PH = r"(?:min(?:imum)?\s+pH\s*(?:is|of|=|:)?\s*|pH\s*(?:>=|≥)\s*)(\d+(?:\.\d+)?)|pH\s*(\d+(?:\.\d+)?)\s*or\s+(?:above|more)"
+
+
+def parse_planning_goal(question: str) -> PlanningGoal:
+    """Flow: Receives researcher question str from run_investigation(); returns PlanningGoal for execute_tool_call() and advise_next_experiment()."""
+    text = question.casefold()
+    if re.search(r"\b(?:not|never|avoid|exclude|without|don't|do not)\b.{0,40}\b(?:zero|positive|measurable|untested|unexplored)\b", text):
+        return 'UNSPECIFIED'
+    if re.search(r"\b(?:compare|comparison|contrast)\b", text):
+        return 'COMPARE'
+    zero = bool(re.search(r"\b(?:zero|non[- ]?detect(?:ed|ion)?|no (?:measurable |detectable )?(?:response|activity))\b", text))
+    positive = bool(re.search(r"\b(?:positive|measurable|detectable)\s+(?:responses?|activity|activities|signals?|products?|outcomes?|results?)\b", text))
+    explore = bool(re.search(r"\b(?:untested|unexplored|undocumented|novel|new conditions?)\b", text))
+    if sum((zero, positive, explore)) != 1:
+        return 'UNSPECIFIED'
+    if zero:
+        return 'VERIFY_ZERO'
+    if positive:
+        return 'VERIFY_POSITIVE'
+    return 'EXPLORE'
 
 
 def parse_experimental_window(question: str) -> ExperimentalWindow:

@@ -150,7 +150,9 @@ def interpret_scientific_scope(question: str) -> RequestScope:
         # Harmless equivalents of a planning request; not enzyme- or template-specific.
         r"|\bwhat\s+should\s+(?:i|we)\s+(?:test|try|measure)(?:\s+\w+){0,3}\s+next\b"
         r"|\bwhat\s+to\s+(?:test|try|measure)(?:\s+\w+){0,2}\s+next\b"
-        r"|\bsuggest(?:\s+\w+){0,2}\s+(?:next|follow[\s-]?up)\s+experiments?\b",
+        r"|\bsuggest(?:\s+\w+){0,2}\s+(?:next|follow[\s-]?up)\s+experiments?\b"
+        r"|\b(?:verify|replicate|repeat|recheck|investigate)\b.{0,60}\b(?:zero|positive|measurable|untested|unexplored)\b"
+        r"|\b(?:explore|measure|test)\b.{0,50}\b(?:untested|unexplored)\b",
         text,
         re.I,
     ):

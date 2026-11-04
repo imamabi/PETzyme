@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from collections import defaultdict
 from itertools import islice, product
 from typing import Literal, TypedDict
@@ -16,7 +17,7 @@ MAX_MISSING_CONDITIONS = 8
 
 
 def _number(value: object) -> float | None:
-    return value if isinstance(value, (int, float)) and not isinstance(value, bool) else None
+    return value if isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) else None
 
 
 def _label(value: object) -> str:
@@ -50,6 +51,12 @@ class ExperimentalCoverage(TypedDict):
     nrel_only_conditions: int
     conditions: list[CoverageCondition]
     conditions_omitted: int
+    domain_temperature_count: int
+    domain_ph_count: int
+    domain_material_count: int
+    domain_combinations: int
+    documented_combinations: int
+    records_with_unknown_condition: int
     missing_in_both: list[CoverageCondition]
     missing_in_both_count: int
     missing_omitted: int
@@ -163,6 +170,15 @@ def summarize_experimental_coverage(
         ),
         conditions=cells[:MAX_COVERAGE_CONDITIONS],
         conditions_omitted=max(0, len(cells) - MAX_COVERAGE_CONDITIONS),
+        domain_temperature_count=len(temperatures),
+        domain_ph_count=len(ph_values),
+        domain_material_count=len(materials),
+        domain_combinations=len(temperatures) * len(ph_values) * len(materials),
+        documented_combinations=len(known_keys),
+        records_with_unknown_condition=sum(
+            c["nrel_observations"] + c["pazy_assays"] for key, c in grouped.items()
+            if key not in known_keys
+        ),
         missing_in_both=missing,
         missing_in_both_count=missing_count,
         missing_omitted=max(0, missing_count - len(missing)),
@@ -170,6 +186,6 @@ def summarize_experimental_coverage(
         "identity and original-experiment linkage remain unverified. Inventory spans all conditions "
         "for this label within the selected publication/protocol scope, not just the response preview. "
         "Shared publication is not independent replication. Missing combinations refer only to "
-        "the observed temperature/pH/material domain in these pinned sources, not the whole literature. "
+        "the Cartesian product of separately observed non-missing temperatures, pH values and material/form pairs in these pinned sources, not the whole literature. Unknown condition fields are excluded from the grid and counted separately. "
         "No response pooling, ranking, conversion or feasibility inference.",
     )

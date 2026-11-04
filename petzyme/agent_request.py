@@ -645,7 +645,7 @@ def select_tool_catalog(request: ResearchRequest) -> list[dict]:
             continue
         schema = deepcopy(descriptor["input_schema"])
         properties = schema["properties"]
-        for forbidden in ("metadata", "csv_path", "request_window"):
+        for forbidden in ("metadata", "csv_path", "request_window", "planning_goal"):
             properties.pop(forbidden, None)
             schema["required"] = [key for key in schema["required"] if key != forbidden]
         for key in BINDINGS.get(name, {}):

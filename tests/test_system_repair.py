@@ -468,7 +468,7 @@ def test_open_planning_does_not_hide_an_executed_conditional_experiment():
     from petzyme.ui_findings import result_overview
 
     view = run_offline(
-        "Investigate ESM050. What experimental conditions and outcomes are reported, and what should I test next?"
+        "Investigate ESM050. What experimental conditions and outcomes are reported, and what should I test next? Please replicate a documented positive response."
     )["result"]
     overview = result_overview(view)
     actions = view["plan"]["recommendations"]
@@ -481,7 +481,7 @@ def test_open_planning_does_not_hide_an_executed_conditional_experiment():
 
 def test_replication_request_uses_combined_coverage_and_actual_equipment_limits():
     view = run_offline(
-        "What experiment should I conduct to replicate ESM050 PET responses, with maximum pH 7 and only 40C now?"
+        "What experiment should I conduct to replicate a documented positive response for ESM050, with maximum pH 7 and only 40C now?"
     )["result"]
     assert view["plan"] and view["advice"]
     assert {r["source"]: r["status"] for r in view["source_coverage"]} == {
@@ -491,7 +491,7 @@ def test_replication_request_uses_combined_coverage_and_actual_equipment_limits(
     proposed = [
         a for a in view["plan"]["recommendations"] if a["category"] == "PROPOSED_EXPERIMENT"
     ]
-    assert proposed and all("not an unexplored condition" in a["proposed_action"] for a in proposed)
+    assert proposed and all("source already documents this condition" in a["proposed_action"] for a in proposed)
     assert all(
         c["temperature_c"] == 40 and c["ph"] <= 7 for a in proposed for c in a["target_conditions"]
     )

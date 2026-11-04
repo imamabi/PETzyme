@@ -127,7 +127,7 @@ def test_explicit_single_source_is_a_pre_execution_boundary(monkeypatch):
 
 
 def test_combined_coverage_changes_conditional_proposal_without_inventing_novelty():
-    advice = advise_next_experiment("ESM050")["result"]
+    advice = advise_next_experiment("ESM050", planning_goal="VERIFY_POSITIVE")["result"]
     evidence = advice["evidence_results"][0]["result"]
     assert evidence["experimental_coverage"]["pazy_additional_conditions"] == 6
     assert evidence["experimental_coverage"]["missing_in_both_count"] == 0
@@ -137,7 +137,7 @@ def test_combined_coverage_changes_conditional_proposal_without_inventing_novelt
     proposal = next(a for a in plan["recommendations"] if a["category"] == "PROPOSED_EXPERIMENT")
     assert (
         proposal["target_conditions"]
-        and "not an unexplored condition" in proposal["proposed_action"]
+        and "source already documents this condition" in proposal["proposed_action"]
     )
     assert proposal["feasibility"]["status"] == "UNKNOWN" and proposal["prerequisites"]
     assert any(
@@ -376,12 +376,12 @@ def test_incomplete_muse_keeps_executed_conditional_tool_plan_visible():
     from petzyme.ui_findings import result_overview
 
     scenario = CombinedScenario()
-    view = investigate_with_backend(QUESTION, MetaModelClient(transport=httpx.MockTransport(scenario.respond)))['result']
+    view = investigate_with_backend(QUESTION + ' Please replicate a documented positive response.', MetaModelClient(transport=httpx.MockTransport(scenario.respond)))['result']
     view['synthesis'] = {'status': 'INCOMPLETE', 'reason_code': 'COMPLETION_LENGTH_LIMIT'}
     overview = result_overview(view)
     assert 'INCOMPLETE SYNTHESIS' in overview.label
     assert 'Tool-generated conditional proposals' in overview.attribution
-    assert any('documented condition' in step.text for step in overview.steps)
+    assert any('documented positive response' in step.text for step in overview.steps)
     assert all('UNKNOWN' in step.label for step in overview.steps)
 
 

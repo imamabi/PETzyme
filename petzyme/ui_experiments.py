@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 import streamlit as st
@@ -31,6 +32,7 @@ class ExperimentalRow:
     original_unit: str = ""
     conversion: UnitRepresentation | None = None
     row_linkage: str = ""
+    reported_replicate_n: int | None = None
 
 
 def _value(value: object) -> str:
@@ -51,8 +53,20 @@ def combined_experimental_rows(value: CombinedExperimentalPreview) -> list[Exper
             record['pet_form'], _value(record['temperature_c']), _value(record['ph']), duration,
             display_response(display), conversion['display_unit'] if converted and conversion else record['original_unit'],
             record['original_response'], record['reference'], record['measurement_definition'],
-            record['original_unit'], conversion, record['row_linkage']))
+            record['original_unit'], conversion, record['row_linkage'],
+            record['replicate_information'].get('replicate_n') if type(record['replicate_information'].get('replicate_n')) is int else None))
     return rows
+
+
+def _measurement_index(row: ExperimentalRow) -> str:
+    """Flow: Receives ExperimentalRow from combined_experimental_rows(); returns a transient source-position label for render_combined_experiments()."""
+    match = re.search(r"#/(\d+)/assays/(\d+)/measurements/(\d+)$", row.reference)
+    if match:
+        return f"P{match[1]} A{match[2]} M{match[3]}"
+    nrel = re.search(r"NREL CSV record (\d+), activity_at_(.+)$", row.reference)
+    if nrel:
+        return f"row {nrel[1]} / {nrel[2]}"
+    return "Source reference in Details"
 
 
 def render_combined_experiments(value: CombinedExperimentalPreview) -> None:
@@ -109,6 +123,8 @@ def render_combined_experiments(value: CombinedExperimentalPreview) -> None:
                 {
                     "Enzyme": r.enzyme,
                     "Source": r.source,
+                    "Measurement index": _measurement_index(r),
+                    "Metric": r.definition.split(' · ', 1)[0] if r.source.startswith('PAZy') else 'CSV response',
                     "PET form": r.form,
                     "°C": r.temperature,
                     "pH": r.ph,
@@ -123,13 +139,28 @@ def render_combined_experiments(value: CombinedExperimentalPreview) -> None:
         st.write(
             "No measured response was retrieved under these filters. Missing measurements are not zero."
         )
+    nrel_preview = len(value['nrel']['observations'])
+    assays_preview = len(value['pazy']['records'])
+    pazy_preview = sum(len(assay['measurements']) for assay in value['pazy']['records'])
+    total_nrel = value['nrel'].get('total_matches')
+    total_assays = value['pazy'].get('total_matches')
+    total_measurements = value['pazy'].get('total_matching_measurements')
+    if type(total_nrel) is int and type(total_assays) is int and type(total_measurements) is int:
+        st.caption(f"Current source filters match {total_nrel} NREL observation{'s' if total_nrel != 1 else ''} and {total_assays} PAZy assay{'s' if total_assays != 1 else ''} containing {total_measurements} individual measurement{'s' if total_measurements != 1 else ''}.")
+    else:
+        st.caption("For multiple source queries, matching totals are reported per query in Details and are not summed.")
     st.caption(
-        f"{len(shown)} of {len(rows)} retrieved measurement rows shown; rounded display only. "
-        "Scroll the table horizontally on narrow screens. No cross-source averages or activity ranking. Other measurement definitions remain in Details; further source measurements may not have been retrieved."
+        f"Retrieved preview: {nrel_preview} NREL observation{'s' if nrel_preview != 1 else ''} and {assays_preview} PAZy assay{'s' if assays_preview != 1 else ''} "
+        f"containing {pazy_preview} individual measurement{'s' if pazy_preview != 1 else ''}; {len(shown)} of {len(rows)} "
+        "retrieved measurement rows shown. These are bounded previews, not all matching records. "
+        "Original values and source references are in Details; no responses are pooled."
     )
     st.caption(
         "NREL inferred conversion: CSV mmol/mg is INFERRED from worksheet reconciliation; displayed µmol/mg = original ×1000 (COMPUTED). Original CSV declaration of units remains unverified. PAZy reported values use source-reported units without conversion."
     )
+    st.caption("PAZy P/A/M labels are zero-based archive positions, not native assay IDs or proof of replicate relationships.")
+    if any(r.source.startswith('NREL') for r in rows) and any(r.source.startswith('PAZy') for r in rows):
+        st.caption("Matching conditions or worksheet references do not prove record-level equivalence. Differences between source values remain unresolved unless independently verified.")
     st.caption(
         "PAZy is publication-derived curation. Shared publications are not independent replication. "
         "NREL duration and units are not filled from PAZy. Full preview counts and omissions are in Details."
@@ -158,6 +189,14 @@ def render_combined_experiments(value: CombinedExperimentalPreview) -> None:
             st.caption(
                 f"{max(0, inventory['pazy_additional_conditions'] - min(3, len(additions)))} additional combinations not listed here."
             )
+        if inventory['domain_combinations']:
+            st.caption(
+                f"Observed-condition grid: {inventory['domain_temperature_count']} temperatures × "
+                f"{inventory['domain_ph_count']} pH values × {inventory['domain_material_count']} "
+                f"PET form/morphology pairs = {inventory['domain_combinations']} combinations; "
+                f"{inventory['documented_combinations']} have selected-source records. "
+                f"{inventory['records_with_unknown_condition']} observations/assays have incomplete condition metadata."
+            )
         if inventory["missing_in_both_count"]:
             selected_sources = (
                 "the selected PAZy scope"
@@ -168,10 +207,10 @@ def render_combined_experiments(value: CombinedExperimentalPreview) -> None:
                 f"• {inventory['missing_in_both_count']} combinations lack records in {selected_sources} "
                 "within the observed temperature/pH/material domain; absence here does not establish novelty or feasibility."
             )
-        elif inventory["nrel_observations"] or inventory["pazy_assays"]:
+        elif inventory['domain_combinations']:
             st.write(
-                "• No missing combination within the observed temperature/pH/material domain. "
-                "Other temperatures, durations and protocols remain outside this coverage claim."
+                "• Every combination in this limited observed-condition grid has a source record. "
+                "This does not establish complete coverage of other temperatures, pH values, materials, durations or protocols."
             )
         else:
             st.write(
@@ -198,10 +237,13 @@ def render_combined_experiments(value: CombinedExperimentalPreview) -> None:
                 f"· {row.duration} · ORIGINAL {row.original_response} {row.original_unit or row.unit}"
             )
             st.text(row.definition + " · " + row.reference)
+            if row.reported_replicate_n is not None:
+                st.caption(f"Source reports replicate_n={row.reported_replicate_n}; that count alone does not identify which measurements are replicates.")
             if row.conversion:
                 st.text("Working representation: " + str(row.conversion))
             if row.row_linkage:
-                st.text("Documentary worksheet linkage: " + row.row_linkage)
+                label = "Documentary linkage assessment: " if row.source.startswith("NREL") else "Source-reported evidence location: "
+                st.text(label + row.row_linkage)
         st.caption(
             "PAZy source: https://www.pazy.eu/ · database article: https://doi.org/10.1093/nar/gkag1026. "
             "Transient display only; no exports or result history. Same-study curation is not independent replication."

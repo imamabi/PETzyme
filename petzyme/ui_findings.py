@@ -19,7 +19,7 @@ def _display_observation(observation: dict[str, JSONValue]) -> tuple[str, str]:
 
 # Display bounds, not scientific sampling or activity-ranking thresholds.
 SNAPSHOT_ROWS_PER_FORM = 3
-VISIBLE_ACTIONS = 3
+VISIBLE_ACTIONS = 4
 
 
 @dataclass(frozen=True)

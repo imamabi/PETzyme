@@ -49,7 +49,7 @@ from .dialogue_rules import (
     validate_dialogue_context,
 )
 from .dialogue_types import DialogueContext
-from .experimental_window import valid_window
+from .experimental_window import parse_planning_goal, valid_window
 from .privacy import outbound_safe
 from .research_planning import needs_semantic_plan, plan_tool, validate_research_plan
 from .research_session import revalidate_cohort_queries
@@ -287,6 +287,7 @@ def run_investigation(
         catalog = [plan_tool()]
     state = AgentState(csv_path, researcher_constraints=researcher_constraints)
     state.request_window = deepcopy(cohort_window) if cohort_window is not None else request.get('window')
+    state.planning_goal = parse_planning_goal(request['question'])
     state.dialogue_context = deepcopy(dialogue_context)
     state.tool_limit = None if automatic_runtime else max_tool_calls
     if local_sequence is not None:

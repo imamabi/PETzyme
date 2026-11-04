@@ -7,7 +7,15 @@ from dataclasses import dataclass, field
 from typing import Literal, NotRequired, Protocol, TypedDict
 
 from .advisor_types import ResearcherConstraints
-from .contracts import ExperimentalWindow, JSONValue, Observation, Source, SourceReceipt, ToolResult
+from .contracts import (
+    ExperimentalWindow,
+    JSONValue,
+    Observation,
+    PlanningGoal,
+    Source,
+    SourceReceipt,
+    ToolResult,
+)
 from .dialogue_types import DialogueContext, DialogueReport
 from .runtime_config import DEFAULT_TURN_TOOLS, RuntimeLimitValues
 from .scientific_scope import RequestScope, ScopeAssessment
@@ -137,5 +145,6 @@ class AgentState:
     tool_attempts: int = 0
     researcher_constraints: ResearcherConstraints | None = None
     request_window: ExperimentalWindow | None = None
+    planning_goal: PlanningGoal = 'UNSPECIFIED'
     dialogue_context: DialogueContext | None = None
     tool_limit: int | None = DEFAULT_TURN_TOOLS

@@ -7,6 +7,7 @@ JSONValue: TypeAlias = str | int | float | bool | None | list['JSONValue'] | dic
 Status = Literal['SUCCESS', 'NO_DATA', 'PARTIAL', 'ERROR']
 Evidence = Literal['MEASURED', 'COMPUTED', 'SIMULATED', 'HYPOTHETICAL']
 PetForm = Literal['CRYSTALLINE_POWDER', 'AMORPHOUS_FILM']
+PlanningGoal = Literal['UNSPECIFIED', 'VERIFY_ZERO', 'VERIFY_POSITIVE', 'COMPARE', 'EXPLORE']
 T = TypeVar('T')
 
 SourceStatus = Literal['FOUND', 'EMPTY', 'EXCLUDED', 'NOT_RELEVANT', 'UNAVAILABLE', 'PENDING']

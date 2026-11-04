@@ -6,10 +6,10 @@ from typing import Literal, TypedDict, cast
 
 from .advisor import prioritize_experiments, recommend_next_experiments
 from .advisor_feasibility import assess_experiment_feasibility, valid_constraints
-from .advisor_types import ExperimentCandidate, ExperimentPlan, ResearcherConstraints
+from .advisor_types import EvidenceBasis, ExperimentCandidate, ExperimentPlan, ResearcherConstraints
 from .assessment_types import ConditionInvestigation, EvidenceGap
 from .conditions import investigate_conditions
-from .contracts import Condition, ExperimentalWindow, JSONValue, ToolResult
+from .contracts import Condition, ExperimentalWindow, JSONValue, PlanningGoal, ToolResult
 from .evidence_records import CombinedExperimentalPreview, experimental_records
 from .experimental import valid_condition
 from .experimental_window import valid_window, within_window
@@ -17,8 +17,9 @@ from .gaps import identify_evidence_gaps
 from .observations import load_nrel, parse_nrel
 from .pet_evidence import ROOT, investigate_pet_evidence
 from .pet_presenter import preview_pet_evidence
+from .pet_retrieval import load_activity_source, match_pet_assays
 from .privacy import safe_public_text
-from .results import outcome
+from .results import finite_number, outcome
 
 
 class ResearchAdvice(TypedDict):
@@ -112,7 +113,8 @@ def advise_next_experiment(enzyme_identifier: str, condition_a: Condition | None
                            max_recommendations: int = 10,
                            optional_constraints: ResearcherConstraints | None = None,
                            source_scope: Literal['BOTH', 'PAZY_ONLY'] = 'BOTH',
-                           request_window: ExperimentalWindow | None = None) -> ToolResult[ResearchAdvice]:
+                           request_window: ExperimentalWindow | None = None,
+                           planning_goal: PlanningGoal = 'UNSPECIFIED') -> ToolResult[ResearchAdvice]:
     """Advise the next experiment using NREL evidence plus bounded PAZy context.
 
     Purpose: single high-level composition for "what should I do next?"
@@ -154,13 +156,15 @@ def advise_next_experiment(enzyme_identifier: str, condition_a: Condition | None
         'Only two exact conditions are investigated; no prediction, unit conversion, whole-literature coverage or laboratory feasibility is inferred.',
         'PAZy selections and this integrated result are transient; no history, exports, caches or saved records.',
     ]
+    if planning_goal not in ('UNSPECIFIED', 'VERIFY_ZERO', 'VERIFY_POSITIVE', 'COMPARE', 'EXPLORE'):
+        return outcome('ERROR', None, [], limits, 'HYPOTHETICAL', 'Invalid experimental objective.')
     if request_window is not None and not valid_window(request_window):
         return outcome('ERROR', None, [], limits, 'HYPOTHETICAL', 'Invalid experimental window; no condition was inferred.')
     if (isinstance(enzyme_identifier, str) and enzyme_identifier.strip() and len(enzyme_identifier) <= 120
             and condition_a is None and condition_b is None
             and type(max_recommendations) is int and 1 <= max_recommendations <= 10
             and valid_constraints(optional_constraints) and source_scope in ('BOTH', 'PAZY_ONLY')):
-        return _coverage_advice(enzyme_identifier, max_recommendations, optional_constraints, source_scope, request_window)
+        return _coverage_advice(enzyme_identifier, max_recommendations, optional_constraints, source_scope, request_window, planning_goal)
     if source_scope != 'BOTH':
         return outcome('ERROR', None, [], limits, 'HYPOTHETICAL', 'PAZy-only advice requires an open landscape; exact NREL condition investigation is excluded.')
     if (not isinstance(enzyme_identifier, str) or not enzyme_identifier.strip() or len(enzyme_identifier) > 120
@@ -246,6 +250,7 @@ def _coverage_advice(
     constraints: ResearcherConstraints | None,
     source_scope: Literal["BOTH", "PAZY_ONLY"],
     request_window: ExperimentalWindow | None,
+    planning_goal: PlanningGoal,
 ) -> ToolResult[ResearchAdvice]:
     """Flow: Receives an external enzyme str and validated bounds from advise_next_experiment(); returns transient ToolResult[ResearchAdvice] using investigate_pet_evidence(), assess_experiment_feasibility() and prioritize_experiments(), without inventing requested conditions or outcomes."""
     query = {'protein_name':enzyme}
@@ -296,16 +301,19 @@ def _coverage_advice(
     candidates: list[ExperimentCandidate] = []
 
     def add(
-        code: str, text: str, *, experiment: bool = False, targets: list[Condition] | None = None
+        code: str, text: str, *, experiment: bool = False, targets: list[Condition] | None = None,
+        target_basis: list[EvidenceBasis] | None = None,
     ) -> None:
+        existing = sum(candidate["code"] == code for candidate in candidates)
+        action_id = "coverage-" + code.lower() + ("-" + str(existing + 1) if existing else "")
         candidates.append(
             {
-                "action_id": "coverage-" + code.lower(),
+                "action_id": action_id,
                 "code": code,
                 "category": "PROPOSED_EXPERIMENT" if experiment else "EVIDENCE_VERIFICATION",
                 "evidence_category": "HYPOTHETICAL",
-                "objective": f"Plan a source-grounded next measurement for candidate {enzyme}.",
-                "evidence_basis": basis,
+                "objective": f"Plan a source-grounded next measurement for candidate {enzyme}; research objective: {planning_goal.lower().replace('_', ' ')}.",
+                "evidence_basis": deepcopy(basis + (target_basis or [])),
                 "proposed_action": text,
                 "required_measurements": [
                     "Define the response and calibration; report independent replication and uncertainty."
@@ -321,9 +329,15 @@ def _coverage_advice(
                 if experiment
                 else [],
                 "varied_variables": [],
-                "expected_information": "Whether source verification or conditional independent replication resolves uncertainty in a documented response; no direction, magnitude or activity outcome is predicted."
-                if experiment
-                else "Source-linked identity, assay interpretation and an explicit laboratory window before choosing an experiment.",
+                "expected_information": (
+                    "Whether a measurement can be obtained under a condition absent from the selected-source grid; no outcome is predicted."
+                    if code == "EXPLORE_UNRECORDED_CONDITION" else
+                    "Whether independent measurement clarifies a recorded zero; no detection limit or outcome is invented."
+                    if code == "VERIFY_RECORDED_ZERO" else
+                    "Whether independent measurement clarifies a recorded positive response; no outcome is predicted."
+                    if code == "REPLICATE_POSITIVE_RESPONSE" else
+                    "Source-linked identity, assay interpretation and an explicit laboratory window before choosing an experiment."
+                ),
                 "prerequisites": [
                     c["action_id"] for c in candidates if c["category"] == "EVIDENCE_VERIFICATION"
                 ]
@@ -351,57 +365,98 @@ def _coverage_advice(
     )
     add(
         "DEFINE_LABORATORY_WINDOW",
-        "Confirm PET form, available temperatures, pH bounds, duration/endpoint and resources. Which laboratory constraints should the next experiment satisfy? No established optimum is identified.",
+        "Confirm PET form, available temperatures, pH bounds, duration/endpoint and resources. "
+        + ("Specify whether to verify a zero, replicate a positive response, compare conditions or explore an untested condition. "
+           if planning_goal == 'UNSPECIFIED' else "Confirm source assay and laboratory feasibility before the requested measurement. ")
+        + "No established optimum is identified.",
     )
-    if inventory and (inventory["nrel_observations"] or inventory["pazy_assays"]):
-        documented = [
-            c for c in inventory["conditions"] if c["pazy_assays"] and not c["nrel_observations"]
-        ]
-        if not documented:
-            documented = inventory["conditions"]
-        eligible = [
-            c
-            for c in documented
-            if c["temperature_c"] is not None
-            and c["ph"] is not None
-            and (c["form"], c["morphology"]) in [("powder", "crystalline"), ("film", "amorphous")]
-        ]
-        eligible = [c for c in eligible if within_window({'temperature_c':c['temperature_c'], 'ph':c['ph'],
-            'pet_form':'CRYSTALLINE_POWDER' if c['form']=='powder' else 'AMORPHOUS_FILM'}, request_window)]
-        targets = [
-            {
-                "temperature_c": c["temperature_c"],
-                "ph": c["ph"],
-                "pet_form": "CRYSTALLINE_POWDER" if c["form"] == "powder" else "AMORPHOUS_FILM",
-            }
-            for c in eligible[:1]
-        ]
-        if targets:
-            add(
-                "VERIFY_DOCUMENTED_RESPONSE",
-                "After confirming laboratory constraints and the source assay, consider independent replication of a documented condition if uncertainty remains. "
-                + (
-                    "Source-documented example: "
-                    + "; ".join(
-                        f"{c['temperature_c']:g}°C, pH {c['ph']:g}, {c['pet_form'].replace('_', ' ').lower()}"
-                        for c in targets
-                    )
-                    + ". "
-                    if targets
-                    else ""
-                )
-                + (
-                    "The source-order example is documented in PAZy but absent from the condensed NREL condition coverage; "
-                    if source_scope == "BOTH"
-                    and any(
-                        c["pazy_assays"] and not c["nrel_observations"] for c in inventory["conditions"]
-                    )
-                    else "The source-order example is already documented; "
-                )
-                + "this is verification/replication, not an unexplored condition, an optimum or an activity prediction. Do not run it unless the laboratory window and feasibility are confirmed.",
-                experiment=True,
-                targets=targets,
-            )
+    additional_evidence: list[ToolResult[dict[str, JSONValue]]] = []
+    if planning_goal in ('VERIFY_ZERO', 'VERIFY_POSITIVE') and inventory:
+        # Scan the already authorized local source without retaining records or
+        # ranking values. A target must have an actual numeric, unqualified
+        # source endpoint of the kind requested by the researcher.
+        snapshot = load_activity_source()
+        if snapshot['result'] is not None and inventory['pazy_candidate_records'] == 1:
+            matches = match_pet_assays(snapshot['result'], {'protein_name': enzyme})
+            selected: list[Condition] = []
+            for ref in matches:
+                assay = ref['assay']
+                c, m = assay['conditions'], assay['material']
+                t, ph = c.get('temperature_c'), c.get('ph')
+                form = ('CRYSTALLINE_POWDER' if (m.get('form'), m.get('morphology')) == ('powder', 'crystalline')
+                        else 'AMORPHOUS_FILM' if (m.get('form'), m.get('morphology')) == ('film', 'amorphous') else None)
+                if not finite_number(t) or not finite_number(ph) or form is None:
+                    continue
+                target: Condition = {'temperature_c': float(t), 'ph': float(ph), 'pet_form': form}
+                if not within_window(target, request_window) or target in selected:
+                    continue
+                measured = [m for m in assay['measurements'] if m.get('metric_type') == 'specific_activity'
+                            and isinstance(m.get('unit'), str) and bool(m['unit'])
+                            and m.get('qualifier') in (None, '', '=') and finite_number(m.get('value'))]
+                if not any((m['value'] == 0 if planning_goal == 'VERIFY_ZERO' else m['value'] > 0) for m in measured):
+                    continue
+                selected.append(target)
+                query = {'protein_name': enzyme, 'temperature_c': target['temperature_c'], 'ph': target['ph'],
+                         'form': 'powder' if form == 'CRYSTALLINE_POWDER' else 'film',
+                         'morphology': 'crystalline' if form == 'CRYSTALLINE_POWDER' else 'amorphous'}
+                target_evidence = investigate_pet_evidence(query, limit=3, source_scope=source_scope)
+                if target_evidence['result'] is None or not target_evidence['result']['pazy']['total_matches']:
+                    continue
+                target_records = experimental_records(cast(CombinedExperimentalPreview,
+                    preview_pet_evidence(target_evidence['result'], safe_public_text)))
+                target_basis: list[EvidenceBasis] = []
+                for record in target_records:
+                    if record['source'] != 'PAZy' or not record['measurement_definition'].startswith('specific_activity · '):
+                        continue
+                    try:
+                        numeric = float(record['original_response'])
+                    except ValueError:
+                        continue
+                    if not finite_number(numeric) or not (numeric == 0 if planning_goal == 'VERIFY_ZERO' else numeric > 0):
+                        continue
+                    locator = record['reference'].split(' · ', 1)[-1]
+                    record_sources = [{**src, 'doi': record['publication'], 'locator': src['url'] + locator}
+                                      for src in target_evidence['provenance'] if src['name'] == 'PAZy activity snapshot']
+                    target_basis.append({'category': 'MEASURED',
+                        'statement': f"PAZy reports {record['original_response']} {record['original_unit']} for {record['measurement_definition']} at {target}; source labels do not authenticate constructs.",
+                        'sources': record_sources, 'csv_sha256': None})
+                if not target_basis:
+                    continue
+                additional_evidence.append(target_evidence)
+                target_text = f"{target['temperature_c']:g}°C, pH {target['ph']:g}, {target['pet_form'].replace('_', ' ').lower()}"
+                goal_text = ('verifying a reported zero response' if planning_goal == 'VERIFY_ZERO' else
+                             'independently replicating a documented positive response')
+                caveat = ('The detection limit has not been verified here, and zero does not prove inactivity. '
+                          if planning_goal == 'VERIFY_ZERO' else '')
+                add('VERIFY_RECORDED_ZERO' if planning_goal == 'VERIFY_ZERO' else 'REPLICATE_POSITIVE_RESPONSE',
+                    f"After confirming the source assay and laboratory feasibility, consider {goal_text} at {target_text}. "
+                    "The source already documents this condition; verify construct, protocol and detection first. "
+                    + caveat + "No result, optimum or causal effect is predicted.",
+                    experiment=True, targets=[target], target_basis=target_basis)
+                if len(selected) >= 2:
+                    break
+    elif planning_goal == 'EXPLORE' and inventory:
+        missing = [c for c in inventory['missing_in_both'] if c['temperature_c'] is not None and c['ph'] is not None
+                   and (c['form'], c['morphology']) in (('powder', 'crystalline'), ('film', 'amorphous'))]
+        for c in missing:
+            target = {'temperature_c': c['temperature_c'], 'ph': c['ph'],
+                      'pet_form': 'CRYSTALLINE_POWDER' if c['form'] == 'powder' else 'AMORPHOUS_FILM'}
+            if within_window(target, request_window):
+                add('EXPLORE_UNRECORDED_CONDITION',
+                    'Conditional proposal: investigate a condition absent from the selected-source observed grid. '
+                    'This is not proof of novelty across the literature; confirm the assay and feasibility first.',
+                    experiment=True, targets=[target])
+                break
+    elif planning_goal == 'COMPARE':
+        add('VERIFY_COMPARABILITY',
+            'Verify source-linked constructs, assay definitions and all controlled variables before selecting conditions for comparison. '
+            'Do not pool responses or interpret a difference causally without documented comparability.')
+    if planning_goal in ('VERIFY_ZERO', 'VERIFY_POSITIVE', 'EXPLORE') and not any(
+        c['category'] == 'PROPOSED_EXPERIMENT' for c in candidates
+    ):
+        add('CLARIFY_UNAVAILABLE_TARGET',
+            'No suitable target was verified in the bounded selected-source evidence and laboratory window. '
+            'Clarify the objective or obtain source-linked evidence; no substitute result was invented.')
     assessments = [assess_experiment_feasibility(c, constraints) for c in candidates]
     if any(item["result"] is None for item in assessments):
         return outcome(
@@ -431,11 +486,11 @@ def _coverage_advice(
         "condition_result": outcome(
             "NO_DATA", None, [], ["No exact condition pair was requested or invented."], "COMPUTED"
         ),
-        "evidence_results": [evidence],
+        "evidence_results": [evidence, *additional_evidence],
         "gaps": [{**g, "kind": "VERIFICATION", "target_conditions": []} for g in value["gaps"]],
         "plan_result": outcome("SUCCESS", plan, sources, limitations, "HYPOTHETICAL"),
         "scientific_status": "PROPOSED_ONLY",
-        "partial_reasons": ["LABORATORY_WINDOW_UNSPECIFIED", *value["partial_reasons"]],
+        "partial_reasons": ["LABORATORY_FEASIBILITY_UNCONFIRMED", *value["partial_reasons"]],
         "persistence": "TRANSIENT_PAZY_SELECTION",
     }
     return outcome("PARTIAL", result, sources, limitations, "HYPOTHETICAL")

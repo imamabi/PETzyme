@@ -29,6 +29,7 @@ class NrelDisplayObservation(TypedDict):
 
 class NrelDisplaySelection(TypedDict):
     observations: list[NrelDisplayObservation]
+    total_matches: NotRequired[int | None]
 
 
 class DisplayMeasurement(TypedDict):
@@ -38,6 +39,7 @@ class DisplayMeasurement(TypedDict):
 
 class DisplayAssay(TypedDict):
     locator: NotRequired[str]
+    evidence_locator: NotRequired[str | None]
     identity_status: NotRequired[str]
     detection_methods: NotRequired[list[JSONValue]]
     protein_name: str
@@ -49,6 +51,8 @@ class DisplayAssay(TypedDict):
 
 class PazyDisplaySelection(TypedDict):
     records: list[DisplayAssay]
+    total_matches: NotRequired[int | None]
+    total_matching_measurements: NotRequired[int | None]
 
 
 class CombinedExperimentalPreview(TypedDict):
@@ -191,7 +195,7 @@ def experimental_records(value: CombinedExperimentalPreview) -> list[Experimenta
                     "identity_status": card.get("identity_status", "UNVERIFIED_CONSTRUCT"),
                     "comparability_status": "NOT_AUTHENTICATED",
                     "evidence_category": "MEASURED",
-                    "row_linkage": "",
+                    "row_linkage": card.get("evidence_locator") or "",
                     "comparability_assessments": [
                         x
                         for x in value.get("comparisons", [])
